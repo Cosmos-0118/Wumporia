@@ -208,9 +208,9 @@ Wumporia/
 
 ### Game 5: Vacuum World
 
-- [ ] Step 34. Build environment model and dirt distribution generator.
-- [ ] Step 35. Implement reflex agent and optional model-based agent.
-- [ ] Step 36. Show performance metrics (moves, energy, cleanliness score).
+- [x] Step 34. Build environment model and dirt distribution generator.
+- [x] Step 35. Implement reflex agent and optional model-based agent.
+- [x] Step 36. Show performance metrics (moves, energy, cleanliness score).
 
 ### Game 6: Pathfinding Robot
 
@@ -250,4 +250,4 @@ Wumporia/
 
 ## 9. Next Action
 
-Proceed with Step 34 through Step 36 (Vacuum World environment model, reflex/model-based agents, and performance metrics).
+Proceed with Step 37 through Step 40 (Pathfinding Robot map editor, BFS/Dijkstra/A\*, visualization of open/closed sets, and benchmarks).

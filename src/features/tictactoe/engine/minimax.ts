@@ -9,7 +9,6 @@ import {
   applyMove,
   checkWin,
   getLegalMoves,
-  isDraw,
   isTerminal,
   opponent,
 } from '@/features/tictactoe/engine/board'

@@ -20,7 +20,7 @@ export function checkWin(board: TTTBoard): TTTWinInfo | null {
     const va = board[a]
     const vb = board[b]
     const vc = board[c]
-    if (va !== null && va === vb && va === vc) {
+    if (va !== null && va !== undefined && va === vb && va === vc) {
       return { winner: va, line }
     }
   }

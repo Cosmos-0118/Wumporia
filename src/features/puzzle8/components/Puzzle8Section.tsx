@@ -201,7 +201,6 @@ export function Puzzle8Section() {
 
   function handleTileClick(index: number) {
     if (!interactive) return
-    const blankIdx = getBlankIndex(board)
     // Find the legal move where the blank ends up at `index`
     const move = getLegalMoves(board).find((m) => m.blankTo === index)
     if (move === undefined) return

@@ -1741,3 +1741,228 @@ a:hover {
     flex-wrap: nowrap;
   }
 }
+
+/* =========================================================================
+   Vacuum World
+   ========================================================================= */
+
+.vacuum-lab {
+  padding: var(--space-10) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.vacuum-lab__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.vacuum-summary-chips {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.vacuum-summary-chips span {
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.vacuum-summary-chips button {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.vacuum-summary-chips button:hover {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+}
+
+.vacuum-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.vacuum-metrics-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.vacuum-metrics-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.vacuum-metrics-card__title-row h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.vacuum-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.vacuum-chip--reflex {
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+}
+
+.vacuum-chip--model {
+  background: rgba(16, 185, 129, 0.14);
+  color: #065f46;
+}
+
+.vacuum-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.vacuum-metrics-grid p {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.vacuum-metrics-grid strong {
+  font-family: var(--font-mono);
+  font-size: 0.94rem;
+}
+
+.vacuum-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.vacuum-pane {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  padding: var(--space-4);
+}
+
+.vacuum-pane__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.vacuum-pane__header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.vacuum-pane__header p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.vacuum-scrubber {
+  width: 100%;
+  accent-color: var(--color-brand);
+  margin-bottom: var(--space-3);
+}
+
+.vacuum-pane__legend {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.vacuum-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.vacuum-dot--agent {
+  background: #2563eb;
+}
+
+.vacuum-dot--dirty {
+  background: #b45309;
+}
+
+.vacuum-dot--clean {
+  background: #d1d5db;
+}
+
+.vacuum-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.vacuum-cell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.vacuum-cell--clean {
+  background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+}
+
+.vacuum-cell--dirty {
+  background: linear-gradient(145deg, #fef3c7, #fcd34d);
+}
+
+.vacuum-cell--agent {
+  box-shadow: inset 0 0 0 2px #2563eb;
+}
+
+.vacuum-cell__dust {
+  font-size: 0.9rem;
+  color: #92400e;
+}
+
+.vacuum-cell__bot {
+  position: absolute;
+  font-size: 0.78rem;
+  color: #1d4ed8;
+}
+
+@media (width <= 900px) {
+  .vacuum-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
