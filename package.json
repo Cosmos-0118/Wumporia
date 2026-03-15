@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/check-bundle-budget.mjs",
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
     "prepare": "husky",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "perf:bundle": "node scripts/check-bundle-budget.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

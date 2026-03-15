@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   clonePathfindingMap,
@@ -7,13 +7,15 @@ import {
   randomizePathfindingMap,
   updatePathfindingCell,
 } from '@/features/pathfinding/engine/grid'
-import { benchmarkPathfinding, pathfindingAlgorithms, solvePathfinding } from '@/features/pathfinding/engine/solver'
+import { pathfindingAlgorithms } from '@/features/pathfinding/engine/solver'
 import type {
   PathfindingAlgorithm,
   PathfindingBlueprint,
   PathfindingSolveResult,
   PathfindingTool,
 } from '@/features/pathfinding/types/pathfinding'
+import { createPathfindingWorkerApi } from '@/features/pathfinding/workers'
+import type { PathfindingBenchmarkRow } from '@/features/pathfinding/workers'
 import { isSamePathPosition, toPathKey } from '@/features/pathfinding/utils/position'
 
 const editorTools: PathfindingTool[] = ['obstacle', 'weight', 'erase', 'start', 'goal']
@@ -22,42 +24,82 @@ export function PathfindingRobotSection() {
   const [map, setMap] = useState<PathfindingBlueprint>(defaultPathfindingBlueprint)
   const [tool, setTool] = useState<PathfindingTool>('obstacle')
   const [algorithm, setAlgorithm] = useState<PathfindingAlgorithm>('A*')
-  const [result, setResult] = useState<PathfindingSolveResult>(() => solvePathfinding(defaultPathfindingBlueprint, 'A*'))
-  const [step, setStep] = useState<number>(() => Math.max(0, solvePathfinding(defaultPathfindingBlueprint, 'A*').steps.length - 1))
+  const [result, setResult] = useState<PathfindingSolveResult | null>(null)
+  const [benchmarks, setBenchmarks] = useState<PathfindingBenchmarkRow[]>([])
+  const [step, setStep] = useState(0)
+  const [isSolving, setIsSolving] = useState(true)
 
-  const benchmarks = useMemo(() => benchmarkPathfinding(map), [map])
-  const frame = result.steps[step]?.state.current?.state ?? null
+  const workerRef = useRef<ReturnType<typeof createPathfindingWorkerApi> | null>(null)
+  const requestIdRef = useRef(0)
 
-  const rerun = (nextMap: PathfindingBlueprint, nextAlgorithm = algorithm) => {
-    const nextResult = solvePathfinding(nextMap, nextAlgorithm)
-    setResult(nextResult)
-    setStep(Math.max(0, nextResult.steps.length - 1))
-  }
+  useEffect(() => {
+    workerRef.current = createPathfindingWorkerApi()
+
+    return () => {
+      workerRef.current?.dispose()
+      workerRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (workerRef.current === null) {
+      return
+    }
+
+    let cancelled = false
+    const requestId = ++requestIdRef.current
+
+    async function run(): Promise<void> {
+      setIsSolving(true)
+      const [nextResult, nextBenchmarks] = await Promise.all([
+        workerRef.current!.api.solve({ map, algorithm }),
+        workerRef.current!.api.benchmark(map),
+      ])
+
+      if (cancelled || requestId !== requestIdRef.current) {
+        return
+      }
+
+      setResult(nextResult)
+      setBenchmarks(nextBenchmarks)
+      setStep(Math.max(0, nextResult.steps.length - 1))
+      setIsSolving(false)
+    }
+
+    void run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [map, algorithm])
+
+  const frame = result?.steps[step]?.state.current?.state ?? null
+  const obstacleKeys = useMemo(() => new Set(map.obstacles.map(toPathKey)), [map.obstacles])
+  const weightedCostByKey = useMemo(
+    () =>
+      map.weightedTiles.reduce<Record<string, number>>((accumulator, tile) => {
+        accumulator[toPathKey(tile)] = tile.cost
+        return accumulator
+      }, {}),
+    [map.weightedTiles],
+  )
+  const openKeys = useMemo(() => new Set(frame?.openKeys ?? []), [frame])
+  const closedKeys = useMemo(() => new Set(frame?.closedKeys ?? []), [frame])
+  const pathKeys = useMemo(() => new Set(frame?.pathKeys ?? []), [frame])
+  const currentKey = frame?.current === null || frame?.current === undefined ? null : toPathKey(frame.current)
 
   const handleGridClick = (row: number, col: number) => {
-    const nextMap = updatePathfindingCell(map, { row, col }, tool)
-    setMap(nextMap)
-    rerun(nextMap)
+    setMap((currentMap) => updatePathfindingCell(currentMap, { row, col }, tool))
   }
 
   const handleRandomize = () => {
-    const nextMap = randomizePathfindingMap(map)
-    setMap(nextMap)
-    rerun(nextMap)
+    setMap((currentMap) => randomizePathfindingMap(currentMap))
   }
 
   const handleReset = () => {
-    const nextMap = clonePathfindingMap(defaultPathfindingBlueprint)
-    setMap(nextMap)
+    setMap(clonePathfindingMap(defaultPathfindingBlueprint))
     setAlgorithm('A*')
-    const nextResult = solvePathfinding(nextMap, 'A*')
-    setResult(nextResult)
-    setStep(Math.max(0, nextResult.steps.length - 1))
-  }
-
-  const handleAlgorithmChange = (nextAlgorithm: PathfindingAlgorithm) => {
-    setAlgorithm(nextAlgorithm)
-    rerun(map, nextAlgorithm)
+    setStep(0)
   }
 
   return (
@@ -75,6 +117,7 @@ export function PathfindingRobotSection() {
           <span>{map.rows}x{map.cols} grid</span>
           <span>{map.obstacles.length} obstacles</span>
           <span>{map.weightedTiles.length} weighted tiles</span>
+          {isSolving ? <span>Solving in worker...</span> : null}
         </div>
       </div>
 
@@ -105,14 +148,15 @@ export function PathfindingRobotSection() {
               const col = index % map.cols
               const position = { row, col }
               const key = toPathKey(position)
-              const isObstacle = map.obstacles.some((cell) => isSamePathPosition(cell, position))
+              const isObstacle = obstacleKeys.has(key)
               const isStart = isSamePathPosition(map.start, position)
               const isGoal = isSamePathPosition(map.goal, position)
-              const isWeighted = map.weightedTiles.some((tile) => isSamePathPosition(tile, position))
-              const isOpen = frame?.openKeys.includes(key) ?? false
-              const isClosed = frame?.closedKeys.includes(key) ?? false
-              const isPath = frame?.pathKeys.includes(key) ?? false
-              const isCurrent = frame?.current !== null && frame?.current !== undefined ? toPathKey(frame.current) === key : false
+              const weightedCost = weightedCostByKey[key]
+              const isWeighted = weightedCost !== undefined
+              const isOpen = openKeys.has(key)
+              const isClosed = closedKeys.has(key)
+              const isPath = pathKeys.has(key)
+              const isCurrent = currentKey === key
               const heuristic = frame?.heuristicByKey[key]
               const cost = frame?.costByKey[key] ?? getTerrainCost(map, position)
 
@@ -135,7 +179,7 @@ export function PathfindingRobotSection() {
                   aria-label={`Pathfinding cell ${row}, ${col}`}
                 >
                   <span className="pathfinding-cell__marker">
-                    {isStart ? 'S' : isGoal ? 'G' : isObstacle ? '■' : isWeighted ? String(getTerrainCost(map, position)) : ''}
+                    {isStart ? 'S' : isGoal ? 'G' : isObstacle ? '■' : isWeighted ? String(weightedCost) : ''}
                   </span>
                   {!isObstacle && !isStart && !isGoal && heuristic !== undefined ? (
                     <span className="pathfinding-cell__meta">h:{heuristic} g:{cost}</span>
@@ -150,7 +194,7 @@ export function PathfindingRobotSection() {
           <div className="pathfinding-config-card">
             <label className="pathfinding-select-wrap">
               Algorithm
-              <select value={algorithm} onChange={(event) => handleAlgorithmChange(event.target.value as PathfindingAlgorithm)}>
+              <select value={algorithm} onChange={(event) => setAlgorithm(event.target.value as PathfindingAlgorithm)}>
                 {pathfindingAlgorithms.map((item) => (
                   <option key={item} value={item}>{item}</option>
                 ))}
@@ -161,17 +205,21 @@ export function PathfindingRobotSection() {
               <input
                 type="range"
                 min={0}
-                max={Math.max(0, result.steps.length - 1)}
-                value={step}
+                max={Math.max(0, (result?.steps.length ?? 1) - 1)}
+                value={Math.min(step, Math.max(0, (result?.steps.length ?? 1) - 1))}
                 onChange={(event) => setStep(Number(event.target.value))}
               />
             </label>
             <div className="pathfinding-metrics-inline">
-              <span>Status: {result.status}</span>
-              <span>Expanded: {result.exploredCount}</span>
-              <span>Time: {result.metrics.elapsedMs}ms</span>
+              <span>Status: {result?.status ?? 'running'}</span>
+              <span>Expanded: {result?.exploredCount ?? 0}</span>
+              <span>Time: {result?.metrics.elapsedMs ?? 0}ms</span>
             </div>
-            <p className="pathfinding-step-message">{result.steps[step]?.message ?? result.failureReason ?? 'No steps available.'}</p>
+            <p className="pathfinding-step-message">
+              {isSolving
+                ? 'Solving and benchmarking in worker...'
+                : result?.steps[step]?.message ?? result?.failureReason ?? 'No steps available.'}
+            </p>
           </div>
 
           <div className="pathfinding-benchmark-card">

@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import {
-  puzzle8AlgorithmList,
-  solvePuzzle8,
-} from '@/features/puzzle8/engine/solver'
+import { puzzle8AlgorithmList } from '@/features/puzzle8/engine/solver'
 import { isSolvable, shuffleBoard } from '@/features/puzzle8/engine/solvability'
 import { getLegalMoves, getBlankIndex, isGoal } from '@/features/puzzle8/engine/board'
 import type {
@@ -14,6 +11,7 @@ import type {
   Puzzle8StepFrame,
   Puzzle8Snapshot,
 } from '@/features/puzzle8/types/puzzle8'
+import { createPuzzle8WorkerBridge } from '@/features/puzzle8/workers'
 import { StepStreamController } from '@/shared/workers'
 import type { StreamMode } from '@/shared/workers/stepStream'
 
@@ -152,8 +150,10 @@ export function Puzzle8Section() {
   const [streamMode, setStreamMode] = useState<StreamMode>('idle')
   const [currentStep, setCurrentStep] = useState(0)
   const [speed, setSpeed] = useState(2)
+  const [isSolving, setIsSolving] = useState(false)
 
   const streamRef = useRef<StepStreamController<Puzzle8Snapshot, Puzzle8SolverMeta> | null>(null)
+  const workerRef = useRef<ReturnType<typeof createPuzzle8WorkerBridge> | null>(null)
 
   // Displayed board comes from the active replay frame, or from the live board state
   const displayedSnapshot = activeFrame?.state.current?.state
@@ -195,6 +195,15 @@ export function Puzzle8Section() {
     streamRef.current?.setSpeed(speed)
   }, [speed])
 
+  useEffect(() => {
+    workerRef.current = createPuzzle8WorkerBridge()
+
+    return () => {
+      workerRef.current?.dispose()
+      workerRef.current = null
+    }
+  }, [])
+
   // ---------------------------------------------------------------------------
   // Handlers
   // ---------------------------------------------------------------------------
@@ -224,13 +233,20 @@ export function Puzzle8Section() {
     streamRef.current = null
   }
 
-  function handleSolve() {
+  async function handleSolve() {
+    if (workerRef.current === null) {
+      return
+    }
+
     streamRef.current?.reset()
-    const result = solvePuzzle8(board, algorithm)
+    setIsSolving(true)
+    await workerRef.current.api.initialize({ board, algorithm })
+    const result = await workerRef.current.api.start()
     setSolveResult(result)
     setActiveFrame(null)
     setStreamMode('idle')
     setCurrentStep(0)
+    setIsSolving(false)
   }
 
   function handlePlay() {
@@ -299,6 +315,7 @@ export function Puzzle8Section() {
             <span className="puzzle8-chip puzzle8-chip--warn">Unsolvable config</span>
           )}
           {solved && <span className="puzzle8-chip puzzle8-chip--ok">Solved!</span>}
+          {isSolving && <span className="puzzle8-chip">Solving in worker...</span>}
           {solveResult !== null && solveResult.status === 'failed' && (
             <span className="puzzle8-chip puzzle8-chip--err">No solution found</span>
           )}
@@ -338,9 +355,9 @@ export function Puzzle8Section() {
               type="button"
               className="puzzle8-btn puzzle8-btn--primary"
               onClick={handleSolve}
-              disabled={!solvable || solved}
+              disabled={!solvable || solved || isSolving}
             >
-              Solve with {algorithm}
+              {isSolving ? 'Solving...' : `Solve with ${algorithm}`}
             </button>
           </div>
         </div>

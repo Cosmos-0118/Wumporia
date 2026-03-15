@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { prefetchRoute } from '@/app/routeModules'
 import { gameCards, gameCategories } from '@/shared/constants/games'
 
 export function HomePage() {
@@ -25,7 +26,12 @@ export function HomePage() {
           step-by-step algorithm animations.
         </p>
         <div className="hero-block__actions">
-          <Link className="button button--primary" to="/games">
+          <Link
+            className="button button--primary"
+            to="/games"
+            onMouseEnter={() => prefetchRoute('/games')}
+            onFocus={() => prefetchRoute('/games')}
+          >
             Open All Games
           </Link>
           <a className="button button--ghost" href="#game-grid">
@@ -72,7 +78,12 @@ export function HomePage() {
               ))}
             </ul>
 
-            <Link to={game.route} className="game-card__cta">
+            <Link
+              to={game.route}
+              className="game-card__cta"
+              onMouseEnter={() => prefetchRoute(game.route)}
+              onFocus={() => prefetchRoute(game.route)}
+            >
               Open Simulation
             </Link>
           </motion.article>

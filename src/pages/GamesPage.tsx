@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+import { prefetchRoute } from '@/app/routeModules'
 import { gameCards } from '@/shared/constants/games'
 
 export function GamesPage() {
@@ -16,7 +17,13 @@ export function GamesPage() {
 
       <section className="games-list" aria-label="Game modules">
         {gameCards.map((game) => (
-          <Link className="games-list__item" key={game.id} to={game.route}>
+          <Link
+            className="games-list__item"
+            key={game.id}
+            to={game.route}
+            onMouseEnter={() => prefetchRoute(game.route)}
+            onFocus={() => prefetchRoute(game.route)}
+          >
             <article>
               <div>
                 <p className="game-card__category">{game.category}</p>

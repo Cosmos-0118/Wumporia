@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { createMazeWorkerBridge } from '@/features/maze/workers'
 import { defaultMazeBlueprint, randomizeMaze, updateMazeCell } from '@/features/maze/engine/grid'
-import { algorithmList, solveMaze } from '@/features/maze/engine/solver'
+import { algorithmList } from '@/features/maze/engine/solver'
 import type {
   MazeAlgorithm,
   MazeBlueprint,
@@ -20,33 +21,80 @@ export function MazeSolverSection() {
   const [primaryAlgorithm, setPrimaryAlgorithm] = useState<MazeAlgorithm>('BFS')
   const [secondaryAlgorithm, setSecondaryAlgorithm] = useState<MazeAlgorithm>('A*')
   const [comparisonMode, setComparisonMode] = useState(true)
-  const [primaryResult, setPrimaryResult] = useState<MazeSolveResult>(() => solveMaze(defaultMazeBlueprint, 'BFS'))
-  const [secondaryResult, setSecondaryResult] = useState<MazeSolveResult>(() => solveMaze(defaultMazeBlueprint, 'A*'))
+  const [primaryResult, setPrimaryResult] = useState<MazeSolveResult | null>(null)
+  const [secondaryResult, setSecondaryResult] = useState<MazeSolveResult | null>(null)
   const [primaryStep, setPrimaryStep] = useState(0)
   const [secondaryStep, setSecondaryStep] = useState(0)
+  const [isSolving, setIsSolving] = useState(true)
 
-  const runAlgorithms = (nextMaze: MazeBlueprint, primary: MazeAlgorithm, secondary: MazeAlgorithm, nextComparisonMode: boolean) => {
-    const nextPrimaryResult = solveMaze(nextMaze, primary)
-    setPrimaryResult(nextPrimaryResult)
-    setPrimaryStep(Math.max(0, nextPrimaryResult.steps.length - 1))
+  const primaryWorkerRef = useRef<ReturnType<typeof createMazeWorkerBridge> | null>(null)
+  const secondaryWorkerRef = useRef<ReturnType<typeof createMazeWorkerBridge> | null>(null)
+  const requestIdRef = useRef(0)
+  const wallKeys = useMemo(() => new Set(maze.walls.map(toMazeKey)), [maze.walls])
 
-    if (nextComparisonMode) {
-      const nextSecondaryResult = solveMaze(nextMaze, secondary)
+  useEffect(() => {
+    primaryWorkerRef.current = createMazeWorkerBridge()
+    secondaryWorkerRef.current = createMazeWorkerBridge()
+
+    return () => {
+      primaryWorkerRef.current?.dispose()
+      secondaryWorkerRef.current?.dispose()
+      primaryWorkerRef.current = null
+      secondaryWorkerRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (primaryWorkerRef.current === null) {
+      return
+    }
+
+    let cancelled = false
+    const requestId = ++requestIdRef.current
+
+    async function run(): Promise<void> {
+      setIsSolving(true)
+
+      await primaryWorkerRef.current?.api.initialize({ maze, algorithm: primaryAlgorithm })
+      const nextPrimaryResult = await primaryWorkerRef.current!.api.start()
+      if (cancelled || requestId !== requestIdRef.current) {
+        return
+      }
+
+      setPrimaryResult(nextPrimaryResult)
+      setPrimaryStep(Math.max(0, nextPrimaryResult.steps.length - 1))
+
+      if (!comparisonMode || secondaryWorkerRef.current === null) {
+        setSecondaryResult(null)
+        setSecondaryStep(0)
+        setIsSolving(false)
+        return
+      }
+
+      await secondaryWorkerRef.current.api.initialize({ maze, algorithm: secondaryAlgorithm })
+      const nextSecondaryResult = await secondaryWorkerRef.current.api.start()
+      if (cancelled || requestId !== requestIdRef.current) {
+        return
+      }
+
       setSecondaryResult(nextSecondaryResult)
       setSecondaryStep(Math.max(0, nextSecondaryResult.steps.length - 1))
+      setIsSolving(false)
     }
-  }
+
+    void run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [maze, primaryAlgorithm, secondaryAlgorithm, comparisonMode])
 
   const handleGridClick = (row: number, col: number) => {
-    const nextMaze = updateMazeCell(maze, { row, col }, tool)
-    setMaze(nextMaze)
-    runAlgorithms(nextMaze, primaryAlgorithm, secondaryAlgorithm, comparisonMode)
+    setMaze((currentMaze) => updateMazeCell(currentMaze, { row, col }, tool))
   }
 
   const handleRandomize = () => {
-    const nextMaze = randomizeMaze(maze)
-    setMaze(nextMaze)
-    runAlgorithms(nextMaze, primaryAlgorithm, secondaryAlgorithm, comparisonMode)
+    setMaze((currentMaze) => randomizeMaze(currentMaze))
   }
 
   const handleReset = () => {
@@ -54,31 +102,12 @@ export function MazeSolverSection() {
     setPrimaryAlgorithm(comparisonDefaults[0])
     setSecondaryAlgorithm(comparisonDefaults[1])
     setComparisonMode(true)
-    const nextPrimary = solveMaze(defaultMazeBlueprint, comparisonDefaults[0])
-    const nextSecondary = solveMaze(defaultMazeBlueprint, comparisonDefaults[1])
-    setPrimaryResult(nextPrimary)
-    setSecondaryResult(nextSecondary)
-    setPrimaryStep(Math.max(0, nextPrimary.steps.length - 1))
-    setSecondaryStep(Math.max(0, nextSecondary.steps.length - 1))
+    setPrimaryStep(0)
+    setSecondaryStep(0)
   }
 
-  const handlePrimaryAlgorithm = (algorithm: MazeAlgorithm) => {
-    setPrimaryAlgorithm(algorithm)
-    runAlgorithms(maze, algorithm, secondaryAlgorithm, comparisonMode)
-  }
-
-  const handleSecondaryAlgorithm = (algorithm: MazeAlgorithm) => {
-    setSecondaryAlgorithm(algorithm)
-    runAlgorithms(maze, primaryAlgorithm, algorithm, comparisonMode)
-  }
-
-  const handleComparisonToggle = (enabled: boolean) => {
-    setComparisonMode(enabled)
-    runAlgorithms(maze, primaryAlgorithm, secondaryAlgorithm, enabled)
-  }
-
-  const primaryFrame = primaryResult.steps[primaryStep] ?? null
-  const secondaryFrame = comparisonMode ? secondaryResult.steps[secondaryStep] ?? null : null
+  const primaryFrame = primaryResult?.steps[primaryStep] ?? null
+  const secondaryFrame = comparisonMode ? secondaryResult?.steps[secondaryStep] ?? null : null
 
   return (
     <section className="maze-lab" id="maze-search" aria-label="Maze search lab">
@@ -95,6 +124,7 @@ export function MazeSolverSection() {
           <span>{maze.rows}x{maze.cols} grid</span>
           <span>{maze.walls.length} walls</span>
           <span>{comparisonMode ? 'Comparison on' : 'Comparison off'}</span>
+          {isSolving ? <span>Solving in worker...</span> : null}
         </div>
       </div>
 
@@ -118,16 +148,13 @@ export function MazeSolverSection() {
           </div>
         </div>
 
-        <div
-          className="maze-board"
-          style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}
-        >
+        <div className="maze-board" style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}>
           {Array.from({ length: maze.rows * maze.cols }, (_, index) => {
             const row = Math.floor(index / maze.cols)
             const col = index % maze.cols
             const position = { row, col }
             const key = toMazeKey(position)
-            const isWall = maze.walls.some((wall) => isSameMazePosition(wall, position))
+            const isWall = wallKeys.has(key)
             const isStart = isSameMazePosition(maze.start, position)
             const isGoal = isSameMazePosition(maze.goal, position)
 
@@ -154,7 +181,7 @@ export function MazeSolverSection() {
       <div className="maze-config-row">
         <label className="maze-select-wrap">
           Primary Algorithm
-          <select value={primaryAlgorithm} onChange={(event) => handlePrimaryAlgorithm(event.target.value as MazeAlgorithm)}>
+          <select value={primaryAlgorithm} onChange={(event) => setPrimaryAlgorithm(event.target.value as MazeAlgorithm)}>
             {algorithmList.map((algorithm) => (
               <option key={algorithm} value={algorithm}>
                 {algorithm}
@@ -167,7 +194,7 @@ export function MazeSolverSection() {
           <input
             type="checkbox"
             checked={comparisonMode}
-            onChange={(event) => handleComparisonToggle(event.target.checked)}
+            onChange={(event) => setComparisonMode(event.target.checked)}
           />
           Enable comparison mode
         </label>
@@ -176,7 +203,7 @@ export function MazeSolverSection() {
           Comparison Algorithm
           <select
             value={secondaryAlgorithm}
-            onChange={(event) => handleSecondaryAlgorithm(event.target.value as MazeAlgorithm)}
+            onChange={(event) => setSecondaryAlgorithm(event.target.value as MazeAlgorithm)}
             disabled={!comparisonMode}
           >
             {algorithmList.map((algorithm) => (
@@ -196,7 +223,7 @@ export function MazeSolverSection() {
           onStepChange={setPrimaryStep}
           maze={maze}
           frame={primaryFrame?.state.current?.state ?? null}
-          status={primaryResult.status}
+          loading={isSolving && primaryResult === null}
         />
 
         {comparisonMode ? (
@@ -207,7 +234,7 @@ export function MazeSolverSection() {
             onStepChange={setSecondaryStep}
             maze={maze}
             frame={secondaryFrame?.state.current?.state ?? null}
-            status={secondaryResult.status}
+            loading={isSolving && secondaryResult === null}
           />
         ) : null}
       </div>
@@ -217,12 +244,12 @@ export function MazeSolverSection() {
 
 interface MazeVisualizationPaneProps {
   title: string
-  result: MazeSolveResult
+  result: MazeSolveResult | null
   step: number
   onStepChange: (value: number) => void
   maze: MazeBlueprint
   frame: MazeFrameSnapshot | null
-  status: MazeSolveResult['status']
+  loading: boolean
 }
 
 function MazeVisualizationPane({
@@ -232,12 +259,13 @@ function MazeVisualizationPane({
   onStepChange,
   maze,
   frame,
-  status,
+  loading,
 }: MazeVisualizationPaneProps) {
-  const frontierKeys = new Set(frame?.frontierKeys ?? [])
-  const exploredKeys = new Set(frame?.exploredKeys ?? [])
-  const pathKeys = new Set(frame?.pathKeys ?? [])
+  const frontierKeys = useMemo(() => new Set(frame?.frontierKeys ?? []), [frame])
+  const exploredKeys = useMemo(() => new Set(frame?.exploredKeys ?? []), [frame])
+  const pathKeys = useMemo(() => new Set(frame?.pathKeys ?? []), [frame])
   const currentKey = frame?.current === null || frame?.current === undefined ? null : toMazeKey(frame.current)
+  const wallKeys = useMemo(() => new Set(maze.walls.map(toMazeKey)), [maze.walls])
 
   return (
     <section className="maze-panel-card">
@@ -245,28 +273,27 @@ function MazeVisualizationPane({
         <div>
           <h3>{title}</h3>
           <p>
-            {status === 'completed'
-              ? `Solved in ${result.steps.at(step)?.state.meta.pathCost ?? 0} moves.`
-              : result.failureReason ?? 'No path found.'}
+            {loading
+              ? 'Solving in worker...'
+              : result?.status === 'completed'
+                ? `Solved in ${result.steps.at(step)?.state.meta.pathCost ?? 0} moves.`
+                : result?.failureReason ?? 'No path found.'}
           </p>
         </div>
         <div className="maze-stats">
-          <span>Explored: {result.exploredCount}</span>
-          <span>Frontier: {result.frontierCount}</span>
-          <span>Time: {result.metrics.elapsedMs}ms</span>
+          <span>Explored: {result?.exploredCount ?? 0}</span>
+          <span>Frontier: {result?.frontierCount ?? 0}</span>
+          <span>Time: {result?.metrics.elapsedMs ?? 0}ms</span>
         </div>
       </div>
 
-      <div
-        className="maze-visual-board"
-        style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}
-      >
+      <div className="maze-visual-board" style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}>
         {Array.from({ length: maze.rows * maze.cols }, (_, index) => {
           const row = Math.floor(index / maze.cols)
           const col = index % maze.cols
           const position = { row, col }
           const key = toMazeKey(position)
-          const isWall = maze.walls.some((wall) => isSameMazePosition(wall, position))
+          const isWall = wallKeys.has(key)
           const isStart = isSameMazePosition(maze.start, position)
           const isGoal = isSameMazePosition(maze.goal, position)
 
@@ -291,15 +318,15 @@ function MazeVisualizationPane({
       </div>
 
       <label className="maze-stepper">
-        Step {Math.min(step + 1, Math.max(result.steps.length, 1))} / {Math.max(result.steps.length, 1)}
+        Step {Math.min(step + 1, Math.max(result?.steps.length ?? 1, 1))} / {Math.max(result?.steps.length ?? 1, 1)}
         <input
           type="range"
           min={0}
-          max={Math.max(result.steps.length - 1, 0)}
+          max={Math.max((result?.steps.length ?? 1) - 1, 0)}
           step={1}
-          value={Math.min(step, Math.max(result.steps.length - 1, 0))}
+          value={Math.min(step, Math.max((result?.steps.length ?? 1) - 1, 0))}
           onChange={(event) => onStepChange(Number(event.target.value))}
-          disabled={result.steps.length === 0}
+          disabled={(result?.steps.length ?? 0) === 0}
         />
       </label>
 

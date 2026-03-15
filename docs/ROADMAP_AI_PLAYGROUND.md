@@ -219,18 +219,12 @@ Wumporia/
 - [x] Step 39. Visualize visited sets, open/closed lists, and heuristic values.
 - [x] Step 40. Add benchmark panel for node expansions and runtime.
 
-### Educational Layer
-
-- [ ] Step 41. Add explanation panels for each algorithm in plain language.
-- [ ] Step 42. Add pseudocode viewer synced to current step.
-- [ ] Step 43. Add "Try this scenario" guided exercises per game.
-
 ### Performance and Stability
 
-- [ ] Step 44. Move all expensive solving to workers.
-- [ ] Step 45. Add memoization for derived UI states.
-- [ ] Step 46. Add code splitting by route and prefetch next likely game page.
-- [ ] Step 47. Add performance budget checks (bundle size + interaction latency).
+- [x] Step 44. Move all expensive solving to workers.
+- [x] Step 45. Add memoization for derived UI states.
+- [x] Step 46. Add code splitting by route and prefetch next likely game page.
+- [x] Step 47. Add performance budget checks (bundle size + interaction latency).
 
 ### Testing and Quality Gate
 
@@ -246,8 +240,14 @@ Wumporia/
 - [ ] Step 54. Add polished README with screenshots and feature matrix.
 - [ ] Step 55. Deploy static build and verify mobile + desktop behavior.
 
+### Educational Layer - do this later after we finetune everything.
+
+- [ ] Step 41. Add explanation panels for each algorithm in plain language.
+- [ ] Step 42. Add pseudocode viewer synced to current step.
+- [ ] Step 43. Add "Try this scenario" guided exercises per game.
+
 ---
 
 ## 9. Next Action
 
-Proceed with Step 41 through Step 43 (explanation panels, pseudocode viewer, and guided exercises).
+Proceed with Step 41 through Step 43 (explanation panels, pseudocode viewer, and guided exercises) before expanding the testing and CI layer.

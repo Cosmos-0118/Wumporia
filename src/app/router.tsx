@@ -1,15 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/AppShell'
-import { GamesPage } from '@/pages/GamesPage'
-import { HomePage } from '@/pages/HomePage'
-import { MazePage } from '@/pages/MazePage'
-import { NotFoundPage } from '@/pages/NotFoundPage'
-import { PathfindingPage } from '@/pages/PathfindingPage'
-import { Puzzle8Page } from '@/pages/Puzzle8Page'
-import { TicTacToePage } from '@/pages/TicTacToePage'
-import { VacuumPage } from '@/pages/VacuumPage'
-import { WumpusPage } from '@/pages/WumpusPage'
+import { routeModules } from '@/app/routeModules'
 
 export const appRouter = createBrowserRouter([
   {
@@ -18,39 +10,66 @@ export const appRouter = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <HomePage />,
+        lazy: async () => {
+          const module = await routeModules.home()
+          return { Component: module.HomePage }
+        },
       },
       {
         path: 'games',
-        element: <GamesPage />,
+        lazy: async () => {
+          const module = await routeModules.games()
+          return { Component: module.GamesPage }
+        },
       },
       {
         path: 'games/wumpus',
-        element: <WumpusPage />,
+        lazy: async () => {
+          const module = await routeModules.wumpus()
+          return { Component: module.WumpusPage }
+        },
       },
       {
         path: 'games/maze',
-        element: <MazePage />,
+        lazy: async () => {
+          const module = await routeModules.maze()
+          return { Component: module.MazePage }
+        },
       },
       {
         path: 'games/puzzle8',
-        element: <Puzzle8Page />,
+        lazy: async () => {
+          const module = await routeModules.puzzle8()
+          return { Component: module.Puzzle8Page }
+        },
       },
       {
         path: 'games/tictactoe',
-        element: <TicTacToePage />,
+        lazy: async () => {
+          const module = await routeModules.tictactoe()
+          return { Component: module.TicTacToePage }
+        },
       },
       {
         path: 'games/vacuum',
-        element: <VacuumPage />,
+        lazy: async () => {
+          const module = await routeModules.vacuum()
+          return { Component: module.VacuumPage }
+        },
       },
       {
         path: 'games/pathfinding',
-        element: <PathfindingPage />,
+        lazy: async () => {
+          const module = await routeModules.pathfinding()
+          return { Component: module.PathfindingPage }
+        },
       },
       {
         path: '*',
-        element: <NotFoundPage />,
+        lazy: async () => {
+          const module = await routeModules.notFound()
+          return { Component: module.NotFoundPage }
+        },
       },
     ],
   },
