@@ -16,6 +16,11 @@ import {
 
 const defaultStart = { row: 0, col: 0 }
 
+interface RandomBlueprintOptions {
+  size?: number
+  pitCount?: number
+}
+
 export const defaultWumpusBlueprint: WumpusBlueprint = {
   size: 4,
   start: defaultStart,
@@ -25,6 +30,54 @@ export const defaultWumpusBlueprint: WumpusBlueprint = {
   ],
   wumpus: { row: 2, col: 3 },
   gold: { row: 0, col: 2 },
+}
+
+export function generateRandomWumpusBlueprint(
+  options: RandomBlueprintOptions = {},
+): WumpusBlueprint {
+  const size = Math.max(4, options.size ?? 6)
+  const start = defaultStart
+  const allCells = getAllCells(size)
+
+  const goldCandidates = allCells.filter(
+    (cell) =>
+      !isSamePosition(cell, start) &&
+      manhattanDistance(cell, start) >= Math.max(3, Math.floor(size / 2) + 1),
+  )
+  const gold = pickRandom(
+    goldCandidates.length > 0
+      ? goldCandidates
+      : allCells.filter((cell) => !isSamePosition(cell, start)),
+  )
+  const safePath = createPathBetween(start, gold)
+  const safePathKeys = new Set(safePath.map(toPositionKey))
+
+  const hazardCandidates = allCells.filter((cell) => !safePathKeys.has(toPositionKey(cell)))
+  const guardedHazardCandidates = hazardCandidates.filter(
+    (cell) => manhattanDistance(cell, start) >= 2,
+  )
+  const wumpusCandidates =
+    guardedHazardCandidates.length > 0 ? guardedHazardCandidates : hazardCandidates
+  const defaultPitCount = Math.max(2, Math.floor(size * 0.7))
+  const pitCount = Math.min(
+    options.pitCount ?? defaultPitCount,
+    Math.max(1, hazardCandidates.length - 1),
+  )
+
+  const wumpus = pickRandom(wumpusCandidates)
+  const pitCandidates =
+    guardedHazardCandidates.length > 0
+      ? guardedHazardCandidates.filter((cell) => !isSamePosition(cell, wumpus))
+      : hazardCandidates.filter((cell) => !isSamePosition(cell, wumpus))
+  const pits = sampleUnique(pitCandidates, pitCount)
+
+  return {
+    size,
+    start,
+    pits,
+    wumpus,
+    gold,
+  }
 }
 
 export function createWumpusWorld(
@@ -283,4 +336,82 @@ function formatPercepts(percepts: WumpusPercepts): string {
   ].filter((value): value is string => value !== null)
 
   return active.length > 0 ? active.join(', ') : 'silence'
+}
+
+function getAllCells(size: number): Array<{ row: number; col: number }> {
+  return Array.from({ length: size * size }, (_, index) => ({
+    row: Math.floor(index / size),
+    col: index % size,
+  }))
+}
+
+function createPathBetween(
+  start: { row: number; col: number },
+  goal: { row: number; col: number },
+): Array<{ row: number; col: number }> {
+  const path = [{ ...start }]
+  let cursor = { ...start }
+
+  while (cursor.row !== goal.row || cursor.col !== goal.col) {
+    const canMoveRow = cursor.row !== goal.row
+    const canMoveCol = cursor.col !== goal.col
+
+    if (canMoveRow && canMoveCol) {
+      if (Math.random() > 0.5) {
+        cursor = {
+          row: cursor.row + Math.sign(goal.row - cursor.row),
+          col: cursor.col,
+        }
+      } else {
+        cursor = {
+          row: cursor.row,
+          col: cursor.col + Math.sign(goal.col - cursor.col),
+        }
+      }
+    } else if (canMoveRow) {
+      cursor = {
+        row: cursor.row + Math.sign(goal.row - cursor.row),
+        col: cursor.col,
+      }
+    } else {
+      cursor = {
+        row: cursor.row,
+        col: cursor.col + Math.sign(goal.col - cursor.col),
+      }
+    }
+
+    path.push({ ...cursor })
+  }
+
+  return path
+}
+
+function manhattanDistance(
+  left: { row: number; col: number },
+  right: { row: number; col: number },
+): number {
+  return Math.abs(left.row - right.row) + Math.abs(left.col - right.col)
+}
+
+function pickRandom<T>(items: T[]): T {
+  const picked = items[Math.floor(Math.random() * items.length)]
+  if (picked === undefined) {
+    throw new Error('Cannot pick a random item from an empty list.')
+  }
+  return picked
+}
+
+function sampleUnique<T>(items: T[], count: number): T[] {
+  const copy = [...items]
+  const result: T[] = []
+
+  for (let i = 0; i < count && copy.length > 0; i += 1) {
+    const index = Math.floor(Math.random() * copy.length)
+    const [next] = copy.splice(index, 1)
+    if (next !== undefined) {
+      result.push(next)
+    }
+  }
+
+  return result
 }

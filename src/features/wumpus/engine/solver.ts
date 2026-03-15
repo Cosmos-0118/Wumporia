@@ -29,8 +29,9 @@ export function solveWumpusWorld(
   const startedAt = Date.now()
   let exploredCount = 0
   let frontierCount = 0
+  const maxSteps = Math.max(24, initialWorld.size * initialWorld.size * 2)
 
-  for (let stepIndex = 0; stepIndex < 24; stepIndex += 1) {
+  for (let stepIndex = 0; stepIndex < maxSteps; stepIndex += 1) {
     const currentKey = toPositionKey(world.agent.position)
     const currentPercepts = getPercepts(world.blueprint, world.agent.position)
     const reasoning = [...world.knowledge.reasoning]
@@ -67,8 +68,13 @@ export function solveWumpusWorld(
       )
     })
 
+    const backtrackStep = findBacktrackStep(world)
+    const lowRiskStep = findLowRiskFrontierStep(world)
+
     const nextMove =
       safeNeighbors[0] ??
+      backtrackStep ??
+      lowRiskStep ??
       fallbackNeighbors.find(
         (neighbor) => !world.knowledge.visitedCells.includes(toPositionKey(neighbor)),
       )
@@ -116,7 +122,11 @@ export function solveWumpusWorld(
         ...world.knowledge.reasoning,
         safeNeighbors.length > 0
           ? `A safe unvisited neighbor exists, so the solver moves ${direction}.`
-          : `No proven safe move exists, so the solver chooses the least risky neighbor ${direction}.`,
+          : backtrackStep !== undefined
+            ? `No adjacent safe frontier exists, so the solver backtracks ${direction} to reach unexplored safe cells.`
+            : lowRiskStep !== undefined
+              ? `No guaranteed-safe frontier remains nearby, so the solver routes ${direction} toward a reachable low-risk frontier.`
+              : `No proven safe move exists, so the solver chooses the least risky neighbor ${direction}.`,
       ]),
     )
 
@@ -186,4 +196,118 @@ function getDirectionLabel(from: { row: number; col: number }, to: { row: number
     return 'left'
   }
   return 'right'
+}
+
+function findBacktrackStep(world: WumpusWorldState): { row: number; col: number } | undefined {
+  const visitedKeys = new Set(world.knowledge.visitedCells)
+  const safeKeys = new Set(world.knowledge.safeCells)
+  const safeUnvisitedKeys = [...safeKeys].filter((key) => !visitedKeys.has(key))
+
+  if (safeUnvisitedKeys.length === 0) {
+    return undefined
+  }
+
+  return findStepTowardTargets(world, new Set(safeUnvisitedKeys))
+}
+
+function findLowRiskFrontierStep(
+  world: WumpusWorldState,
+): { row: number; col: number } | undefined {
+  const visitedKeys = new Set(world.knowledge.visitedCells)
+  const suspectedPit = new Set(world.knowledge.suspectedPitCells)
+  const suspectedWumpus = new Set(world.knowledge.suspectedWumpusCells)
+  const safeKeys = new Set(world.knowledge.safeCells)
+  const lowRiskTargets = new Set<string>()
+
+  for (let row = 0; row < world.size; row += 1) {
+    for (let col = 0; col < world.size; col += 1) {
+      const key = toPositionKey({ row, col })
+      if (
+        visitedKeys.has(key) ||
+        suspectedPit.has(key) ||
+        suspectedWumpus.has(key) ||
+        safeKeys.has(key)
+      ) {
+        continue
+      }
+      lowRiskTargets.add(key)
+    }
+  }
+
+  if (lowRiskTargets.size === 0) {
+    return undefined
+  }
+
+  return findStepTowardTargets(world, lowRiskTargets)
+}
+
+function findStepTowardTargets(
+  world: WumpusWorldState,
+  targetKeys: Set<string>,
+): { row: number; col: number } | undefined {
+  if (targetKeys.size === 0) {
+    return undefined
+  }
+
+  const visitedKeys = new Set(world.knowledge.visitedCells)
+  const safeKeys = new Set(world.knowledge.safeCells)
+  const startKey = toPositionKey(world.agent.position)
+  const traversableKeys = new Set([...visitedKeys, ...safeKeys, startKey])
+
+  const queue = [world.agent.position]
+  const seenKeys = new Set([startKey])
+  const parentByKey = new Map<string, string | null>([[startKey, null]])
+
+  while (queue.length > 0) {
+    const current = queue.shift()
+    if (current === undefined) {
+      break
+    }
+
+    const currentKey = toPositionKey(current)
+    if (targetKeys.has(currentKey) && currentKey !== startKey) {
+      const firstStepKey = reconstructFirstStep(startKey, currentKey, parentByKey)
+      return firstStepKey === undefined ? undefined : fromPositionKey(firstStepKey)
+    }
+
+    const neighbors = getNeighbors(current, world.size)
+      .filter((neighbor) => {
+        const key = toPositionKey(neighbor)
+        return traversableKeys.has(key) || targetKeys.has(key)
+      })
+      .sort(
+        (left, right) =>
+          directionPriority[getDirectionLabel(current, left)] -
+          directionPriority[getDirectionLabel(current, right)],
+      )
+
+    for (const neighbor of neighbors) {
+      const neighborKey = toPositionKey(neighbor)
+      if (seenKeys.has(neighborKey)) {
+        continue
+      }
+
+      seenKeys.add(neighborKey)
+      parentByKey.set(neighborKey, currentKey)
+      queue.push(neighbor)
+    }
+  }
+
+  return undefined
+}
+
+function reconstructFirstStep(
+  startKey: string,
+  goalKey: string,
+  parentByKey: Map<string, string | null>,
+): string | undefined {
+  let cursorKey = goalKey
+  let parentKey = parentByKey.get(cursorKey)
+
+  while (parentKey !== null && parentKey !== undefined && parentKey !== startKey) {
+    cursorKey = parentKey
+    parentKey = parentByKey.get(cursorKey)
+  }
+
+  return parentKey === startKey ? cursorKey : undefined
 }

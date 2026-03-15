@@ -3,6 +3,7 @@ export {
   createWumpusWorld,
   defaultWumpusBlueprint,
   deriveKnowledge,
+  generateRandomWumpusBlueprint,
   getPercepts,
   grabGold,
   moveAgent,
