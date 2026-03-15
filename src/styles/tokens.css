@@ -1,0 +1,33 @@
+:root {
+  --font-heading: "Space Grotesk", "Sora", sans-serif;
+  --font-body: "Manrope", "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-surface: #f6f4ee;
+  --color-panel: #fffef8;
+  --color-text: #1d1b17;
+  --color-muted: #6b665c;
+  --color-brand: #0f766e;
+  --color-brand-strong: #0b5b56;
+  --color-border: #d8d2c3;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+
+  --shadow-soft: 0 10px 30px rgba(15, 20, 28, 0.12);
+  --shadow-card: 0 16px 40px rgba(15, 20, 28, 0.14);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --duration-fast: 180ms;
+  --duration-base: 320ms;
+  --duration-slow: 520ms;
+  --ease-emphasis: cubic-bezier(0.22, 1, 0.36, 1);
+}
