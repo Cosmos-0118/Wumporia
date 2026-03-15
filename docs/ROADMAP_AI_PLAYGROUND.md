@@ -194,10 +194,10 @@ Wumporia/
 
 ### Game 3: 8 Puzzle
 
-- [ ] Step 26. Implement board state model and legal move generation.
-- [ ] Step 27. Implement BFS, Greedy, A\* with Manhattan heuristic.
-- [ ] Step 28. Add solvability checker and shuffle constraints.
-- [ ] Step 29. Add move replay + complexity metrics panel.
+- [x] Step 26. Implement board state model and legal move generation.
+- [x] Step 27. Implement BFS, Greedy, A\* with Manhattan heuristic.
+- [x] Step 28. Add solvability checker and shuffle constraints.
+- [x] Step 29. Add move replay + complexity metrics panel.
 
 ### Game 4: Tic Tac Toe AI
 
@@ -250,4 +250,4 @@ Wumporia/
 
 ## 9. Next Action
 
-Proceed with Step 26 through Step 29 (8 Puzzle state model, BFS/Greedy/A\*, solvability constraints, and replay + complexity metrics).
+Proceed with Step 30 through Step 33 (Tic Tac Toe game engine, Minimax + Alpha-Beta pruning, difficulty presets, and AI decision breakdown).
