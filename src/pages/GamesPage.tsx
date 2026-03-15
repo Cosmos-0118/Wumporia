@@ -1,5 +1,6 @@
 import { MazeSolverSection } from '@/features/maze'
 import { Puzzle8Section } from '@/features/puzzle8'
+import { TicTacToeSection } from '@/features/tictactoe'
 import { WumpusWorldSection } from '@/features/wumpus'
 import { gameCards } from '@/shared/constants/games'
 
@@ -18,6 +19,7 @@ export function GamesPage() {
       <WumpusWorldSection />
       <MazeSolverSection />
       <Puzzle8Section />
+      <TicTacToeSection />
 
       <section className="games-list" aria-label="Game modules">
         {gameCards.map((game) => (

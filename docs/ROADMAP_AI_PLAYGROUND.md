@@ -201,10 +201,10 @@ Wumporia/
 
 ### Game 4: Tic Tac Toe AI
 
-- [ ] Step 30. Build game engine and board UI with polished interactions.
-- [ ] Step 31. Implement Minimax + Alpha-Beta pruning.
-- [ ] Step 32. Add difficulty presets (depth limits + scoring tweaks).
-- [ ] Step 33. Show AI decision breakdown (best move score + branch preview).
+- [x] Step 30. Build game engine and board UI with polished interactions.
+- [x] Step 31. Implement Minimax + Alpha-Beta pruning.
+- [x] Step 32. Add difficulty presets (depth limits + scoring tweaks).
+- [x] Step 33. Show AI decision breakdown (best move score + branch preview).
 
 ### Game 5: Vacuum World
 
@@ -250,4 +250,4 @@ Wumporia/
 
 ## 9. Next Action
 
-Proceed with Step 30 through Step 33 (Tic Tac Toe game engine, Minimax + Alpha-Beta pruning, difficulty presets, and AI decision breakdown).
+Proceed with Step 34 through Step 36 (Vacuum World environment model, reflex/model-based agents, and performance metrics).
