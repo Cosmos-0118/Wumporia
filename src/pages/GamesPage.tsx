@@ -1,42 +1,36 @@
-import { MazeSolverSection } from '@/features/maze'
-import { Puzzle8Section } from '@/features/puzzle8'
-import { TicTacToeSection } from '@/features/tictactoe'
-import { VacuumWorldSection } from '@/features/vacuum'
-import { WumpusWorldSection } from '@/features/wumpus'
+import { Link } from 'react-router-dom'
+
 import { gameCards } from '@/shared/constants/games'
 
 export function GamesPage() {
   return (
-    <main>
-      <section className="hero-block hero-block--compact">
+    <main className="games-hub-page">
+      <section className="hero-block hero-block--compact games-hub-page__hero">
         <p className="eyebrow">Game Hub</p>
         <h1>All Mini-Games</h1>
         <p>
-          Core engines are being implemented next. The shell already supports animation, loading,
-          and reusable AI control panels.
+          Each simulation now has a dedicated page with focused layout and interaction space.
+          Choose a game below to enter its full-screen lab.
         </p>
       </section>
 
-      <WumpusWorldSection />
-      <MazeSolverSection />
-      <Puzzle8Section />
-      <TicTacToeSection />
-      <VacuumWorldSection />
-
       <section className="games-list" aria-label="Game modules">
         {gameCards.map((game) => (
-          <article className="games-list__item" id={game.route.replace('/games#', '')} key={game.id}>
-            <div>
-              <p className="game-card__category">{game.category}</p>
-              <h2>{game.title}</h2>
-              <p>{game.tagline}</p>
-            </div>
-            <ul className="game-card__tags">
-              {game.algorithms.map((algorithm) => (
-                <li key={algorithm}>{algorithm}</li>
-              ))}
-            </ul>
-          </article>
+          <Link className="games-list__item" key={game.id} to={game.route}>
+            <article>
+              <div>
+                <p className="game-card__category">{game.category}</p>
+                <h2>{game.title}</h2>
+                <p>{game.tagline}</p>
+              </div>
+              <ul className="game-card__tags">
+                {game.algorithms.map((algorithm) => (
+                  <li key={algorithm}>{algorithm}</li>
+                ))}
+              </ul>
+              <span className="games-list__open">Open Lab →</span>
+            </article>
+          </Link>
         ))}
       </section>
     </main>

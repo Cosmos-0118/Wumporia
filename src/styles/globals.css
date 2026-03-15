@@ -268,8 +268,84 @@ p {
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.72);
   padding: var(--space-5);
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform var(--duration-fast) var(--ease-emphasis),
+    box-shadow var(--duration-fast) var(--ease-emphasis),
+    border-color var(--duration-fast) var(--ease-emphasis);
+}
+
+.games-list__item article {
   display: grid;
   gap: var(--space-3);
+}
+
+.games-list__item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 118, 110, 0.45);
+  box-shadow: var(--shadow-soft);
+}
+
+.games-list__open {
+  font-weight: 700;
+  color: var(--color-brand-strong);
+}
+
+.games-hub-page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.games-hub-page__hero {
+  margin-bottom: 0;
+}
+
+.game-page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.game-page__hero {
+  margin-bottom: 0;
+}
+
+.game-page__hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.game-page__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.35rem 0.8rem;
+}
+
+.game-page__module > section {
+  border-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+}
+
+.game-page__coming-soon {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: var(--shadow-soft);
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  display: grid;
+  gap: var(--space-2);
 }
 
 .wumpus-lab {
@@ -1964,5 +2040,253 @@ a:hover {
 @media (width <= 900px) {
   .vacuum-metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================================
+   Pathfinding Robot
+   ========================================================================= */
+
+.pathfinding-lab {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.pathfinding-lab__header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.pathfinding-summary-chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.pathfinding-summary-chips span {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  background: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.pathfinding-workspace {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.pathfinding-editor-card,
+.pathfinding-config-card,
+.pathfinding-benchmark-card,
+.pathfinding-legend-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.78);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-soft);
+}
+
+.pathfinding-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.pathfinding-toolbar__group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pathfinding-toolbar__group button,
+.pathfinding-tool,
+.pathfinding-select-wrap select {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.pathfinding-tool,
+.pathfinding-toolbar__group button {
+  padding: 0.5rem 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pathfinding-tool--active {
+  background: var(--color-brand);
+  color: #fff;
+  border-color: transparent;
+}
+
+.pathfinding-board {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.pathfinding-cell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: rgba(248, 246, 240, 0.96);
+  padding: 0.3rem;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pathfinding-cell--obstacle {
+  background: linear-gradient(145deg, #334155, #0f172a);
+  color: #fff;
+}
+
+.pathfinding-cell--weighted {
+  background: linear-gradient(145deg, #fef3c7, #fdba74);
+}
+
+.pathfinding-cell--start {
+  background: linear-gradient(145deg, #dcfce7, #86efac);
+}
+
+.pathfinding-cell--goal {
+  background: linear-gradient(145deg, #fee2e2, #fca5a5);
+}
+
+.pathfinding-cell--open {
+  box-shadow: inset 0 0 0 2px rgba(14, 165, 233, 0.4);
+}
+
+.pathfinding-cell--closed {
+  box-shadow: inset 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+.pathfinding-cell--path {
+  box-shadow: inset 0 0 0 2px rgba(245, 158, 11, 0.55);
+}
+
+.pathfinding-cell--current {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 2px rgba(15, 118, 110, 0.65),
+    0 4px 10px rgba(15, 118, 110, 0.18);
+}
+
+.pathfinding-cell__marker {
+  font-weight: 800;
+  font-family: var(--font-heading);
+}
+
+.pathfinding-cell__meta {
+  font-size: 0.63rem;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+
+.pathfinding-sidepanel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.pathfinding-select-wrap {
+  display: grid;
+  gap: var(--space-2);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.pathfinding-select-wrap select,
+.pathfinding-select-wrap input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+}
+
+.pathfinding-metrics-inline {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pathfinding-metrics-inline span {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.pathfinding-step-message {
+  font-size: 0.92rem;
+}
+
+.pathfinding-benchmark-card__header {
+  margin-bottom: var(--space-3);
+}
+
+.pathfinding-benchmark-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.pathfinding-benchmark-row {
+  display: grid;
+  grid-template-columns: 1.1fr repeat(4, auto);
+  gap: var(--space-2);
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+}
+
+.pathfinding-legend-grid {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.pathfinding-dot {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  margin-right: 0.45rem;
+  vertical-align: middle;
+}
+
+.pathfinding-dot--open {
+  background: #38bdf8;
+}
+.pathfinding-dot--closed {
+  background: #6366f1;
+}
+.pathfinding-dot--path {
+  background: #f59e0b;
+}
+.pathfinding-dot--weighted {
+  background: #fb923c;
+}
+
+@media (width >= 980px) {
+  .pathfinding-workspace {
+    grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.9fr);
+    align-items: start;
+  }
+}
+
+@media (width <= 768px) {
+  .pathfinding-benchmark-row {
+    grid-template-columns: 1fr 1fr;
   }
 }

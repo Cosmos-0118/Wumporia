@@ -214,10 +214,10 @@ Wumporia/
 
 ### Game 6: Pathfinding Robot
 
-- [ ] Step 37. Create obstacle map editor and weighted terrain option.
-- [ ] Step 38. Implement BFS, Dijkstra, A\*.
-- [ ] Step 39. Visualize visited sets, open/closed lists, and heuristic values.
-- [ ] Step 40. Add benchmark panel for node expansions and runtime.
+- [x] Step 37. Create obstacle map editor and weighted terrain option.
+- [x] Step 38. Implement BFS, Dijkstra, A\*.
+- [x] Step 39. Visualize visited sets, open/closed lists, and heuristic values.
+- [x] Step 40. Add benchmark panel for node expansions and runtime.
 
 ### Educational Layer
 
@@ -250,4 +250,4 @@ Wumporia/
 
 ## 9. Next Action
 
-Proceed with Step 37 through Step 40 (Pathfinding Robot map editor, BFS/Dijkstra/A\*, visualization of open/closed sets, and benchmarks).
+Proceed with Step 41 through Step 43 (explanation panels, pseudocode viewer, and guided exercises).
