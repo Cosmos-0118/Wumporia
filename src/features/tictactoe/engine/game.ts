@@ -8,11 +8,64 @@ import {
 } from '@/features/tictactoe/engine/board'
 import { computeAIMove } from '@/features/tictactoe/engine/minimax'
 
+function applyAiTurn(state: TTTGameState): TTTGameState {
+  const aiPlayer = opponent(state.humanPlayer)
+  const analysis = computeAIMove(state.board, aiPlayer, state.difficulty)
+
+  if (analysis === null) {
+    return {
+      ...state,
+      currentPlayer: aiPlayer,
+      status: 'draw',
+      winInfo: null,
+      lastAnalysis: null,
+    }
+  }
+
+  const board = applyMove(state.board, analysis.chosen, aiPlayer)
+  const history = [...state.moveHistory, analysis.chosen]
+  const aiWin = checkWin(board)
+
+  if (aiWin !== null) {
+    return {
+      ...state,
+      board,
+      currentPlayer: state.humanPlayer,
+      status: 'lost',
+      winInfo: aiWin,
+      moveHistory: history,
+      lastAnalysis: analysis,
+    }
+  }
+
+  if (isDraw(board)) {
+    return {
+      ...state,
+      board,
+      currentPlayer: state.humanPlayer,
+      status: 'draw',
+      winInfo: null,
+      moveHistory: history,
+      lastAnalysis: analysis,
+    }
+  }
+
+  return {
+    ...state,
+    board,
+    currentPlayer: state.humanPlayer,
+    status: 'playing',
+    winInfo: null,
+    moveHistory: history,
+    lastAnalysis: analysis,
+  }
+}
+
 export function createGame(
   humanPlayer: TTTPlayer = 'X',
   difficulty: TTTDifficulty = 'hard',
 ): TTTGameState {
-  return {
+  const initialState: TTTGameState = {
     board: EMPTY_BOARD,
     currentPlayer: 'X', // X always goes first
     status: 'playing',
@@ -22,6 +75,13 @@ export function createGame(
     difficulty,
     lastAnalysis: null,
   }
+
+  // If the human chooses O, the AI (X) should immediately take the opening turn.
+  if (humanPlayer === 'O') {
+    return applyAiTurn(initialState)
+  }
+
+  return initialState
 }
 
 /** Apply a human move and — if the game continues — trigger the AI response. */
@@ -30,7 +90,7 @@ export function applyHumanMove(state: TTTGameState, index: number): TTTGameState
   if (state.board[index] !== null) return state
   if (state.currentPlayer !== state.humanPlayer) return state
 
-  let board = applyMove(state.board, index, state.humanPlayer)
+  const board = applyMove(state.board, index, state.humanPlayer)
   const history = [...state.moveHistory, index]
 
   const win = checkWin(board)
@@ -58,57 +118,15 @@ export function applyHumanMove(state: TTTGameState, index: number): TTTGameState
   }
 
   // AI turn
-  const aiPlayer = opponent(state.humanPlayer)
-  const analysis = computeAIMove(board, aiPlayer, state.difficulty)
-
-  if (analysis === null) {
-    return {
-      ...state,
-      board,
-      currentPlayer: aiPlayer,
-      status: 'draw',
-      winInfo: null,
-      moveHistory: history,
-      lastAnalysis: null,
-    }
-  }
-
-  board = applyMove(board, analysis.chosen, aiPlayer)
-  const history2 = [...history, analysis.chosen]
-
-  const aiWin = checkWin(board)
-  if (aiWin !== null) {
-    return {
-      ...state,
-      board,
-      currentPlayer: state.humanPlayer,
-      status: 'lost',
-      winInfo: aiWin,
-      moveHistory: history2,
-      lastAnalysis: analysis,
-    }
-  }
-  if (isDraw(board)) {
-    return {
-      ...state,
-      board,
-      currentPlayer: state.humanPlayer,
-      status: 'draw',
-      winInfo: null,
-      moveHistory: history2,
-      lastAnalysis: analysis,
-    }
-  }
-
-  return {
+  return applyAiTurn({
     ...state,
     board,
-    currentPlayer: state.humanPlayer,
+    currentPlayer: opponent(state.humanPlayer),
     status: 'playing',
     winInfo: null,
-    moveHistory: history2,
-    lastAnalysis: analysis,
-  }
+    moveHistory: history,
+    lastAnalysis: null,
+  })
 }
 
 export function resetGame(difficulty: TTTDifficulty, humanPlayer: TTTPlayer): TTTGameState {
