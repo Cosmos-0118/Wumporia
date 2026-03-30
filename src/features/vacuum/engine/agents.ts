@@ -13,10 +13,32 @@ interface SimState {
   agent: VacuumPosition
   dirtySet: Set<string>
   step: number
-  reflexDirectionIdx: number
+  reflexPatrol: VacuumPosition[]
+  reflexPatrolIdx: number
+  reflexPatrolForward: boolean
 }
 
-const directionCycle: VacuumAction[] = ['right', 'down', 'left', 'up']
+function createReflexPatrol(world: VacuumWorld): VacuumPosition[] {
+  const path: VacuumPosition[] = []
+
+  for (let row = 0; row < world.rows; row += 1) {
+    if (row % 2 === 0) {
+      for (let col = 0; col < world.cols; col += 1) {
+        path.push({ row, col })
+      }
+    } else {
+      for (let col = world.cols - 1; col >= 0; col -= 1) {
+        path.push({ row, col })
+      }
+    }
+  }
+
+  if (path.length === 0) {
+    return [{ ...world.start }]
+  }
+
+  return path
+}
 
 function inBounds(position: VacuumPosition, world: VacuumWorld): boolean {
   return (
@@ -61,15 +83,44 @@ function chooseReflexAction(state: SimState, world: VacuumWorld): VacuumAction {
     return 'suck'
   }
 
-  for (let i = 0; i < directionCycle.length; i++) {
-    const idx = (state.reflexDirectionIdx + i) % directionCycle.length
-    const action = directionCycle[idx]
-    if (action === undefined) {
-      continue
-    }
+  if (state.reflexPatrol.length <= 1) {
+    return 'idle'
+  }
+
+  let nextIdx = state.reflexPatrolForward ? state.reflexPatrolIdx + 1 : state.reflexPatrolIdx - 1
+
+  if (nextIdx >= state.reflexPatrol.length) {
+    state.reflexPatrolForward = false
+    nextIdx = state.reflexPatrolIdx - 1
+  } else if (nextIdx < 0) {
+    state.reflexPatrolForward = true
+    nextIdx = state.reflexPatrolIdx + 1
+  }
+
+  if (nextIdx < 0 || nextIdx >= state.reflexPatrol.length) {
+    return 'idle'
+  }
+
+  const nextTarget = state.reflexPatrol[nextIdx]
+  if (nextTarget === undefined) {
+    return 'idle'
+  }
+
+  let action: VacuumAction = 'idle'
+  if (nextTarget.row < state.agent.row) {
+    action = 'up'
+  } else if (nextTarget.row > state.agent.row) {
+    action = 'down'
+  } else if (nextTarget.col < state.agent.col) {
+    action = 'left'
+  } else if (nextTarget.col > state.agent.col) {
+    action = 'right'
+  }
+
+  if (action !== 'idle') {
     const next = move(state.agent, action)
     if (inBounds(next, world)) {
-      state.reflexDirectionIdx = (idx + 1) % directionCycle.length
+      state.reflexPatrolIdx = nextIdx
       return action
     }
   }
@@ -151,11 +202,20 @@ export function simulateVacuumAgent(
   agentType: VacuumAgentType,
   maxSteps = 120,
 ): VacuumRunResult {
+  const reflexPatrol = createReflexPatrol(world)
+  const reflexStartIdx = Math.max(
+    0,
+    reflexPatrol.findIndex(
+      (position) => position.row === world.start.row && position.col === world.start.col,
+    ),
+  )
   const state: SimState = {
     agent: { ...world.start },
     dirtySet: new Set(world.dirtKeys),
     step: 0,
-    reflexDirectionIdx: 0,
+    reflexPatrol,
+    reflexPatrolIdx: reflexStartIdx,
+    reflexPatrolForward: true,
   }
 
   const initialDirtCount = state.dirtySet.size

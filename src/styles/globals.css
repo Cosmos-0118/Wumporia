@@ -1892,7 +1892,13 @@ a:hover {
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.62);
+  margin-bottom: var(--space-4);
 }
 
 .vacuum-summary-chips span {
@@ -1911,6 +1917,8 @@ a:hover {
   background: var(--color-surface-raised);
   color: var(--color-text);
   padding: 6px 12px;
+  font-weight: 600;
+  white-space: nowrap;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 120ms ease;
@@ -1921,11 +1929,55 @@ a:hover {
   color: var(--color-brand);
 }
 
+.vacuum-size-slider {
+  display: grid;
+  gap: 4px;
+  min-width: 170px;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.vacuum-size-slider__input {
+  width: 100%;
+  accent-color: var(--color-brand);
+}
+
 .vacuum-metrics-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
+}
+
+.vacuum-replay-controls {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.vacuum-replay-controls__button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-brand);
+  color: #fff;
+  padding: 0.5rem 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vacuum-replay-controls__button--ghost {
+  background: #fff;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.vacuum-replay-controls__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .vacuum-metrics-card {

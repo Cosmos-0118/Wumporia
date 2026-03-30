@@ -76,4 +76,25 @@ describe('Vacuum World Engine', () => {
     expect(first?.step).toBe(0)
     expect(first?.action).toBe('idle')
   })
+
+  it('reflex agent should not idle while dirt remains in the world', () => {
+    const world: VacuumWorld = {
+      rows: 5,
+      cols: 7,
+      start: { row: 3, col: 3 },
+      dirtKeys: ['0,3', '1,1', '1,2', '1,4', '4,2', '4,4', '0,0', '0,6', '3,6'],
+    }
+
+    const result = simulateVacuumAgent(world, 'reflex', 200)
+    const hasPrematureIdle = result.history.some((frame) => {
+      if (frame.action !== 'idle' || frame.step === 0) {
+        return false
+      }
+
+      return frame.dirtyKeys.length > 0
+    })
+
+    expect(hasPrematureIdle).toBe(false)
+    expect(result.metrics.remainingDirty).toBe(0)
+  })
 })
