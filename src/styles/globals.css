@@ -2307,12 +2307,21 @@ a:hover {
   gap: var(--space-2);
   font-weight: 600;
   color: var(--color-text);
+  font-size: 0.9rem;
 }
 
 .pathfinding-select-wrap select,
 .pathfinding-select-wrap input {
   width: 100%;
   padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.pathfinding-select-wrap input[type='range'] {
+  accent-color: var(--color-brand);
+  padding: 0;
 }
 
 .pathfinding-metrics-inline {
@@ -2321,21 +2330,66 @@ a:hover {
   flex-wrap: wrap;
 }
 
+.pathfinding-replay-controls {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pathfinding-replay-controls__button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-brand);
+  color: #fff;
+  padding: 0.5rem 0.8rem;
+  min-height: 2.1rem;
+  min-width: 74px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pathfinding-replay-controls__button--ghost {
+  background: #fff;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.pathfinding-replay-controls__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .pathfinding-metrics-inline span {
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  padding: 0.35rem 0.65rem;
+  padding: 0.32rem 0.6rem;
   background: rgba(255, 255, 255, 0.75);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
 }
 
 .pathfinding-step-message {
-  font-size: 0.92rem;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
 }
 
 .pathfinding-benchmark-card__header {
   margin-bottom: var(--space-3);
+}
+
+.pathfinding-benchmark-card__header h3 {
+  margin: 0;
+}
+
+.pathfinding-benchmark-card__header p {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
 }
 
 .pathfinding-benchmark-list {
@@ -2355,9 +2409,22 @@ a:hover {
   font-size: 0.8rem;
 }
 
+.pathfinding-benchmark-row strong {
+  font-size: 0.78rem;
+}
+
+.pathfinding-benchmark-row span {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+}
+
 .pathfinding-legend-grid {
   display: grid;
   gap: var(--space-2);
+}
+
+.pathfinding-legend-grid span {
+  color: var(--color-text-muted);
 }
 
 .pathfinding-dot {
@@ -2390,7 +2457,26 @@ a:hover {
 }
 
 @media (width <= 768px) {
+  .pathfinding-config-card {
+    padding: var(--space-3);
+  }
+
+  .pathfinding-replay-controls {
+    gap: 0.4rem;
+  }
+
+  .pathfinding-replay-controls__button {
+    min-width: 68px;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
   .pathfinding-benchmark-row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr auto auto;
+    row-gap: 0.35rem;
+  }
+
+  .pathfinding-benchmark-row span {
+    font-size: 0.72rem;
   }
 }

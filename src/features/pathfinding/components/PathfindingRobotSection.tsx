@@ -19,6 +19,7 @@ import type { PathfindingBenchmarkRow } from '@/features/pathfinding/workers'
 import { isSamePathPosition, toPathKey } from '@/features/pathfinding/utils/position'
 
 const editorTools: PathfindingTool[] = ['obstacle', 'weight', 'erase', 'start', 'goal']
+const PATHFINDING_AUTOPLAY_MS = 420
 
 export function PathfindingRobotSection() {
   const [map, setMap] = useState<PathfindingBlueprint>(defaultPathfindingBlueprint)
@@ -28,6 +29,7 @@ export function PathfindingRobotSection() {
   const [benchmarks, setBenchmarks] = useState<PathfindingBenchmarkRow[]>([])
   const [step, setStep] = useState(0)
   const [isSolving, setIsSolving] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const workerRef = useRef<ReturnType<typeof createPathfindingWorkerApi> | null>(null)
   const requestIdRef = useRef(0)
@@ -73,6 +75,24 @@ export function PathfindingRobotSection() {
     }
   }, [map, algorithm])
 
+  const maxStep = Math.max(0, (result?.steps.length ?? 1) - 1)
+  const hasReplaySteps = (result?.steps.length ?? 0) > 1
+  const isAutoPlaying = isPlaying && hasReplaySteps && step < maxStep
+
+  useEffect(() => {
+    if (!isAutoPlaying) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      setStep((currentStep) => Math.min(currentStep + 1, maxStep))
+    }, PATHFINDING_AUTOPLAY_MS)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [isAutoPlaying, maxStep, step])
+
   const frame = result?.steps[step]?.state.current?.state ?? null
   const obstacleKeys = useMemo(() => new Set(map.obstacles.map(toPathKey)), [map.obstacles])
   const weightedCostByKey = useMemo(
@@ -89,17 +109,46 @@ export function PathfindingRobotSection() {
   const currentKey = frame?.current === null || frame?.current === undefined ? null : toPathKey(frame.current)
 
   const handleGridClick = (row: number, col: number) => {
+    setIsPlaying(false)
     setMap((currentMap) => updatePathfindingCell(currentMap, { row, col }, tool))
   }
 
   const handleRandomize = () => {
+    setIsPlaying(false)
     setMap((currentMap) => randomizePathfindingMap(currentMap))
   }
 
   const handleReset = () => {
+    setIsPlaying(false)
     setMap(clonePathfindingMap(defaultPathfindingBlueprint))
     setAlgorithm('A*')
     setStep(0)
+  }
+
+  const handleStartAi = () => {
+    if (!hasReplaySteps) {
+      return
+    }
+
+    if (step >= maxStep) {
+      setStep(0)
+    }
+
+    setIsPlaying(true)
+  }
+
+  const handlePauseAi = () => {
+    setIsPlaying(false)
+  }
+
+  const handleResetReplay = () => {
+    setIsPlaying(false)
+    setStep(0)
+  }
+
+  const handleStepChange = (nextStep: number) => {
+    setIsPlaying(false)
+    setStep(nextStep)
   }
 
   return (
@@ -194,20 +243,54 @@ export function PathfindingRobotSection() {
           <div className="pathfinding-config-card">
             <label className="pathfinding-select-wrap">
               Algorithm
-              <select value={algorithm} onChange={(event) => setAlgorithm(event.target.value as PathfindingAlgorithm)}>
+              <select
+                value={algorithm}
+                onChange={(event) => {
+                  setIsPlaying(false)
+                  setAlgorithm(event.target.value as PathfindingAlgorithm)
+                }}
+              >
                 {pathfindingAlgorithms.map((item) => (
                   <option key={item} value={item}>{item}</option>
                 ))}
               </select>
             </label>
+
+            <div className="pathfinding-replay-controls" aria-label="Pathfinding AI replay controls">
+              <button
+                type="button"
+                className="pathfinding-replay-controls__button"
+                onClick={handleStartAi}
+                disabled={isSolving || !hasReplaySteps || isAutoPlaying}
+              >
+                Start AI
+              </button>
+              <button
+                type="button"
+                className="pathfinding-replay-controls__button pathfinding-replay-controls__button--ghost"
+                onClick={handlePauseAi}
+                disabled={!isAutoPlaying}
+              >
+                Pause
+              </button>
+              <button
+                type="button"
+                className="pathfinding-replay-controls__button pathfinding-replay-controls__button--ghost"
+                onClick={handleResetReplay}
+                disabled={isSolving || step === 0}
+              >
+                Reset
+              </button>
+            </div>
+
             <label className="pathfinding-select-wrap">
               Step Replay
               <input
                 type="range"
                 min={0}
-                max={Math.max(0, (result?.steps.length ?? 1) - 1)}
-                value={Math.min(step, Math.max(0, (result?.steps.length ?? 1) - 1))}
-                onChange={(event) => setStep(Number(event.target.value))}
+                max={maxStep}
+                value={Math.min(step, maxStep)}
+                onChange={(event) => handleStepChange(Number(event.target.value))}
               />
             </label>
             <div className="pathfinding-metrics-inline">
