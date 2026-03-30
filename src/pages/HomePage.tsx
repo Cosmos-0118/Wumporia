@@ -34,9 +34,6 @@ export function HomePage() {
           >
             Open All Games
           </Link>
-          <a className="button button--ghost" href="#game-grid">
-            Browse Categories
-          </a>
         </div>
       </section>
 
