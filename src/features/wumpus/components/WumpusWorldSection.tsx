@@ -340,63 +340,65 @@ export function WumpusWorldSection() {
       </header>
 
       <div className="wumpusx__layout">
-        <section className="wumpusx__board-card">
-          <div
-            className="wumpusx__board"
-            style={{ gridTemplateColumns: `repeat(${displayedWorld.size}, minmax(0, 1fr))` }}
-          >
-            {Array.from({ length: displayedWorld.size * displayedWorld.size }, (_, index) => {
-              const row = Math.floor(index / displayedWorld.size)
-              const col = index % displayedWorld.size
-              const position = { row, col }
-              const key = toPositionKey(position)
-              const isCurrent = isSamePosition(position, displayedWorld.agent.position)
-              const isVisited = displayedWorld.knowledge.visitedCells.includes(key)
-              const isSafe = displayedWorld.knowledge.safeCells.includes(key)
-              const suspectPit = displayedWorld.knowledge.suspectedPitCells.includes(key)
-              const suspectWumpus = displayedWorld.knowledge.suspectedWumpusCells.includes(key)
-              const revealTruth = displayedWorld.status !== 'exploring' || isVisited
-              const cellLabels: string[] = []
+        <div className="wumpusx__top-row">
+          <section className="wumpusx__board-card">
+            <div
+              className="wumpusx__board"
+              style={{ gridTemplateColumns: `repeat(${displayedWorld.size}, minmax(0, 1fr))` }}
+            >
+              {Array.from({ length: displayedWorld.size * displayedWorld.size }, (_, index) => {
+                const row = Math.floor(index / displayedWorld.size)
+                const col = index % displayedWorld.size
+                const position = { row, col }
+                const key = toPositionKey(position)
+                const isCurrent = isSamePosition(position, displayedWorld.agent.position)
+                const isVisited = displayedWorld.knowledge.visitedCells.includes(key)
+                const isSafe = displayedWorld.knowledge.safeCells.includes(key)
+                const suspectPit = displayedWorld.knowledge.suspectedPitCells.includes(key)
+                const suspectWumpus = displayedWorld.knowledge.suspectedWumpusCells.includes(key)
+                const revealTruth = displayedWorld.status !== 'exploring' || isVisited
+                const cellLabels: string[] = []
 
-              if (isCurrent) {
-                cellLabels.push('A')
-              }
-              if (revealTruth && isSamePosition(position, displayedWorld.blueprint.gold) && !displayedWorld.agent.hasGold) {
-                cellLabels.push('G')
-              }
-              if (revealTruth && displayedWorld.blueprint.pits.some((pit) => isSamePosition(pit, position))) {
-                cellLabels.push('P')
-              }
-              if (revealTruth && isSamePosition(position, displayedWorld.blueprint.wumpus)) {
-                cellLabels.push('W')
-              }
+                if (isCurrent) {
+                  cellLabels.push('A')
+                }
+                if (revealTruth && isSamePosition(position, displayedWorld.blueprint.gold) && !displayedWorld.agent.hasGold) {
+                  cellLabels.push('G')
+                }
+                if (revealTruth && displayedWorld.blueprint.pits.some((pit) => isSamePosition(pit, position))) {
+                  cellLabels.push('P')
+                }
+                if (revealTruth && isSamePosition(position, displayedWorld.blueprint.wumpus)) {
+                  cellLabels.push('W')
+                }
 
-              const cellClassName = [
-                'wumpusx-cell',
-                boardCellDensityClass,
-                isCurrent ? 'wumpusx-cell--current' : '',
-                isVisited ? 'wumpusx-cell--visited' : '',
-                isSafe ? 'wumpusx-cell--safe' : '',
-                suspectPit ? 'wumpusx-cell--pit-risk' : '',
-                suspectWumpus ? 'wumpusx-cell--wumpus-risk' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')
+                const cellClassName = [
+                  'wumpusx-cell',
+                  boardCellDensityClass,
+                  isCurrent ? 'wumpusx-cell--current' : '',
+                  isVisited ? 'wumpusx-cell--visited' : '',
+                  isSafe ? 'wumpusx-cell--safe' : '',
+                  suspectPit ? 'wumpusx-cell--pit-risk' : '',
+                  suspectWumpus ? 'wumpusx-cell--wumpus-risk' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')
 
-              return (
-                <div className={cellClassName} key={key}>
-                  <span className="wumpusx-cell__coord">{row},{col}</span>
-                  <div className="wumpusx-cell__tokens">
-                    {cellLabels.map((label) => (
-                      <span key={label}>{label}</span>
-                    ))}
+                return (
+                  <div className={cellClassName} key={key}>
+                    <span className="wumpusx-cell__coord">{row},{col}</span>
+                    <div className="wumpusx-cell__tokens">
+                      {cellLabels.map((label) => (
+                        <span key={label}>{label}</span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          </section>
 
-          <div className="wumpusx__controls">
+          <aside className="wumpusx__controls" aria-label="Wumpus controls">
             <div className="wumpusx__controls-col">
               <h3>Manual Controls</h3>
               <div className="wumpusx-dpad" aria-label="Move agent">
@@ -480,8 +482,8 @@ export function WumpusWorldSection() {
                 Generate New Cave
               </button>
             </div>
-          </div>
-        </section>
+          </aside>
+        </div>
 
         <section className="wumpusx__info-stack">
           <div className="wumpusx__panel-card">
