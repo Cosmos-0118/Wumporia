@@ -26,6 +26,7 @@ export function MazeSolverSection() {
   const [primaryStep, setPrimaryStep] = useState(0)
   const [secondaryStep, setSecondaryStep] = useState(0)
   const [isSolving, setIsSolving] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const primaryWorkerRef = useRef<ReturnType<typeof createMazeWorkerBridge> | null>(null)
   const secondaryWorkerRef = useRef<ReturnType<typeof createMazeWorkerBridge> | null>(null)
@@ -90,14 +91,17 @@ export function MazeSolverSection() {
   }, [maze, primaryAlgorithm, secondaryAlgorithm, comparisonMode])
 
   const handleGridClick = (row: number, col: number) => {
+    setIsPlaying(false)
     setMaze((currentMaze) => updateMazeCell(currentMaze, { row, col }, tool))
   }
 
   const handleRandomize = () => {
+    setIsPlaying(false)
     setMaze((currentMaze) => randomizeMaze(currentMaze))
   }
 
   const handleReset = () => {
+    setIsPlaying(false)
     setMaze(defaultMazeBlueprint)
     setPrimaryAlgorithm(comparisonDefaults[0])
     setSecondaryAlgorithm(comparisonDefaults[1])
@@ -108,6 +112,81 @@ export function MazeSolverSection() {
 
   const primaryFrame = primaryResult?.steps[primaryStep] ?? null
   const secondaryFrame = comparisonMode ? secondaryResult?.steps[secondaryStep] ?? null : null
+  const primaryMaxStep = Math.max((primaryResult?.steps.length ?? 1) - 1, 0)
+  const secondaryMaxStep = Math.max((secondaryResult?.steps.length ?? 1) - 1, 0)
+  const canReplayPrimary = (primaryResult?.steps.length ?? 0) > 1
+  const canReplaySecondary = comparisonMode && (secondaryResult?.steps.length ?? 0) > 1
+  const hasReplaySteps = canReplayPrimary || canReplaySecondary
+  const primaryDone = !canReplayPrimary || primaryStep >= primaryMaxStep
+  const secondaryDone = !comparisonMode || !canReplaySecondary || secondaryStep >= secondaryMaxStep
+  const isAutoPlaying = isPlaying && !(primaryDone && secondaryDone)
+
+  useEffect(() => {
+    if (!isAutoPlaying) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      if (!primaryDone) {
+        setPrimaryStep((currentStep) => Math.min(currentStep + 1, primaryMaxStep))
+      }
+
+      if (comparisonMode && !secondaryDone) {
+        setSecondaryStep((currentStep) => Math.min(currentStep + 1, secondaryMaxStep))
+      }
+    }, 420)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [
+    canReplayPrimary,
+    canReplaySecondary,
+    comparisonMode,
+    isAutoPlaying,
+    primaryDone,
+    primaryMaxStep,
+    primaryStep,
+    secondaryDone,
+    secondaryMaxStep,
+    secondaryStep,
+  ])
+
+  const handleStartAi = () => {
+    if (!hasReplaySteps) {
+      return
+    }
+
+    if (canReplayPrimary && primaryStep >= primaryMaxStep) {
+      setPrimaryStep(0)
+    }
+
+    if (comparisonMode && canReplaySecondary && secondaryStep >= secondaryMaxStep) {
+      setSecondaryStep(0)
+    }
+
+    setIsPlaying(true)
+  }
+
+  const handlePauseAi = () => {
+    setIsPlaying(false)
+  }
+
+  const handleResetReplay = () => {
+    setIsPlaying(false)
+    setPrimaryStep(0)
+    setSecondaryStep(0)
+  }
+
+  const handlePrimaryStepChange = (value: number) => {
+    setIsPlaying(false)
+    setPrimaryStep(value)
+  }
+
+  const handleSecondaryStepChange = (value: number) => {
+    setIsPlaying(false)
+    setSecondaryStep(value)
+  }
 
   return (
     <section className="maze-lab" id="maze-search" aria-label="Maze search lab">
@@ -181,7 +260,13 @@ export function MazeSolverSection() {
       <div className="maze-config-row">
         <label className="maze-select-wrap">
           Primary Algorithm
-          <select value={primaryAlgorithm} onChange={(event) => setPrimaryAlgorithm(event.target.value as MazeAlgorithm)}>
+          <select
+            value={primaryAlgorithm}
+            onChange={(event) => {
+              setIsPlaying(false)
+              setPrimaryAlgorithm(event.target.value as MazeAlgorithm)
+            }}
+          >
             {algorithmList.map((algorithm) => (
               <option key={algorithm} value={algorithm}>
                 {algorithm}
@@ -194,7 +279,10 @@ export function MazeSolverSection() {
           <input
             type="checkbox"
             checked={comparisonMode}
-            onChange={(event) => setComparisonMode(event.target.checked)}
+            onChange={(event) => {
+              setIsPlaying(false)
+              setComparisonMode(event.target.checked)
+            }}
           />
           Enable comparison mode
         </label>
@@ -203,7 +291,10 @@ export function MazeSolverSection() {
           Comparison Algorithm
           <select
             value={secondaryAlgorithm}
-            onChange={(event) => setSecondaryAlgorithm(event.target.value as MazeAlgorithm)}
+            onChange={(event) => {
+              setIsPlaying(false)
+              setSecondaryAlgorithm(event.target.value as MazeAlgorithm)
+            }}
             disabled={!comparisonMode}
           >
             {algorithmList.map((algorithm) => (
@@ -215,12 +306,39 @@ export function MazeSolverSection() {
         </label>
       </div>
 
+      <div className="maze-stepper__actions maze-stepper__actions--global" aria-label="Maze AI replay controls">
+        <button
+          type="button"
+          className="maze-stepper__button"
+          onClick={handleStartAi}
+          disabled={isSolving || !hasReplaySteps || isAutoPlaying}
+        >
+          Start AI
+        </button>
+        <button
+          type="button"
+          className="maze-stepper__button maze-stepper__button--ghost"
+          onClick={handlePauseAi}
+          disabled={!isAutoPlaying}
+        >
+          Pause
+        </button>
+        <button
+          type="button"
+          className="maze-stepper__button maze-stepper__button--ghost"
+          onClick={handleResetReplay}
+          disabled={isSolving || !hasReplaySteps}
+        >
+          Reset
+        </button>
+      </div>
+
       <div className={comparisonMode ? 'maze-panels maze-panels--compare' : 'maze-panels'}>
         <MazeVisualizationPane
           title={primaryAlgorithm}
           result={primaryResult}
           step={primaryStep}
-          onStepChange={setPrimaryStep}
+          onStepChange={handlePrimaryStepChange}
           maze={maze}
           frame={primaryFrame?.state.current?.state ?? null}
           loading={isSolving && primaryResult === null}
@@ -231,7 +349,7 @@ export function MazeSolverSection() {
             title={secondaryAlgorithm}
             result={secondaryResult}
             step={secondaryStep}
-            onStepChange={setSecondaryStep}
+            onStepChange={handleSecondaryStepChange}
             maze={maze}
             frame={secondaryFrame?.state.current?.state ?? null}
             loading={isSolving && secondaryResult === null}
@@ -266,19 +384,22 @@ function MazeVisualizationPane({
   const pathKeys = useMemo(() => new Set(frame?.pathKeys ?? []), [frame])
   const currentKey = frame?.current === null || frame?.current === undefined ? null : toMazeKey(frame.current)
   const wallKeys = useMemo(() => new Set(maze.walls.map(toMazeKey)), [maze.walls])
+  const maxStep = Math.max((result?.steps.length ?? 1) - 1, 0)
+  const hasReplaySteps = (result?.steps.length ?? 0) > 1
+  const solvedMoveCount = result?.steps.at(-1)?.state.meta.pathCost ?? 0
+  const statusMessage =
+    loading
+      ? 'Solving in worker...'
+      : result?.status === 'completed'
+        ? `Solved in ${solvedMoveCount} moves.`
+        : result?.failureReason ?? 'No path found.'
 
   return (
     <section className="maze-panel-card">
       <div className="maze-panel-card__header">
         <div>
           <h3>{title}</h3>
-          <p>
-            {loading
-              ? 'Solving in worker...'
-              : result?.status === 'completed'
-                ? `Solved in ${result.steps.at(step)?.state.meta.pathCost ?? 0} moves.`
-                : result?.failureReason ?? 'No path found.'}
-          </p>
+          <p className="maze-panel-card__status">{statusMessage}</p>
         </div>
         <div className="maze-stats">
           <span>Explored: {result?.exploredCount ?? 0}</span>
@@ -322,11 +443,11 @@ function MazeVisualizationPane({
         <input
           type="range"
           min={0}
-          max={Math.max((result?.steps.length ?? 1) - 1, 0)}
+          max={maxStep}
           step={1}
-          value={Math.min(step, Math.max((result?.steps.length ?? 1) - 1, 0))}
+          value={Math.min(step, maxStep)}
           onChange={(event) => onStepChange(Number(event.target.value))}
-          disabled={(result?.steps.length ?? 0) === 0}
+          disabled={!hasReplaySteps}
         />
       </label>
 
