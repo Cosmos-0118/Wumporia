@@ -1,0 +1,85 @@
+asset_name,file_location,priority_order,asset_type
+hero-ai-playground-bg.webp,public/images/site/,1,WebP
+loading-grid-pulse.json,public/lottie/site/,1,Lottie JSON
+brand-mark.svg,public/icons/site/,1,SVG
+cave-floor-tile.webp,public/images/wumpus/,1,WebP
+agent-explorer-idle.png,public/images/wumpus/,1,PNG
+wumpus-creature-idle.png,public/images/wumpus/,1,PNG
+gold-pile.png,public/images/wumpus/,1,PNG
+pit-hole.png,public/images/wumpus/,1,PNG
+grid-cell-base.webp,public/images/maze/,1,WebP
+grid-cell-wall.webp,public/images/maze/,1,WebP
+start-marker.png,public/images/maze/,1,PNG
+goal-marker.png,public/images/maze/,1,PNG
+robot-idle.png,public/images/pathfinding/,1,PNG
+vacuum-robot-idle.png,public/images/vacuum/,1,PNG
+section-noise-overlay.png,public/images/site/,2,PNG
+route-transition-orb.json,public/lottie/site/,2,Lottie JSON
+filter.svg,public/icons/ui/,2,SVG
+play.svg,public/icons/ui/,2,SVG
+pause.svg,public/icons/ui/,2,SVG
+reset.svg,public/icons/ui/,2,SVG
+step-forward.svg,public/icons/ui/,2,SVG
+compare.svg,public/icons/ui/,2,SVG
+randomize.svg,public/icons/ui/,2,SVG
+info.svg,public/icons/ui/,2,SVG
+card-glow-mask.png,public/images/shared/,2,PNG
+cave-wall-tile.webp,public/images/wumpus/,2,WebP
+wumpus-breeze.svg,public/icons/games/,2,SVG
+wumpus-smell.svg,public/icons/games/,2,SVG
+wumpus-glitter.svg,public/icons/games/,2,SVG
+wumpus-safe.svg,public/icons/games/,2,SVG
+wumpus-danger.svg,public/icons/games/,2,SVG
+breeze-loop.json,public/lottie/wumpus/,2,Lottie JSON
+glitter-loop.json,public/lottie/wumpus/,2,Lottie JSON
+maze-frontier.svg,public/icons/games/,2,SVG
+maze-explored.svg,public/icons/games/,2,SVG
+maze-path.svg,public/icons/games/,2,SVG
+maze-wall.svg,public/icons/games/,2,SVG
+frontier-wave.json,public/lottie/maze/,2,Lottie JSON
+path-trace.json,public/lottie/maze/,2,Lottie JSON
+tile-surface-light.webp,public/images/puzzle8/,2,WebP
+tile-surface-dark.webp,public/images/puzzle8/,2,WebP
+board-frame.webp,public/images/puzzle8/,2,WebP
+puzzle-empty-slot.svg,public/icons/games/,2,SVG
+board-swap-flash.json,public/lottie/shared/,2,Lottie JSON
+board-surface.webp,public/images/tictactoe/,2,WebP
+tictactoe-x.svg,public/icons/games/,2,SVG
+tictactoe-o.svg,public/icons/games/,2,SVG
+tictactoe-winning-line.svg,public/icons/games/,2,SVG
+win-burst-soft.json,public/lottie/shared/,2,Lottie JSON
+room-tile-clean.webp,public/images/vacuum/,2,WebP
+room-tile-dirty.webp,public/images/vacuum/,2,WebP
+dust-cluster.png,public/images/vacuum/,2,PNG
+vacuum-clean.svg,public/icons/games/,2,SVG
+vacuum-dirty.svg,public/icons/games/,2,SVG
+vacuum-energy.svg,public/icons/games/,2,SVG
+clean-sweep.json,public/lottie/vacuum/,2,Lottie JSON
+dust-burst.json,public/lottie/vacuum/,2,Lottie JSON
+robot-move-1.png,public/images/pathfinding/,2,PNG
+robot-move-2.png,public/images/pathfinding/,2,PNG
+grid-floor.webp,public/images/pathfinding/,2,WebP
+obstacle-block.webp,public/images/pathfinding/,2,WebP
+weighted-cell.webp,public/images/pathfinding/,2,WebP
+goal-dock.png,public/images/pathfinding/,2,PNG
+path-open-set.svg,public/icons/games/,2,SVG
+path-closed-set.svg,public/icons/games/,2,SVG
+path-heuristic.svg,public/icons/games/,2,SVG
+robot-scan.json,public/lottie/pathfinding/,2,Lottie JSON
+path-pulse.json,public/lottie/pathfinding/,2,Lottie JSON
+soft-shadow-blob.png,public/images/shared/,2,PNG
+glow-ring-cyan.png,public/images/shared/,2,PNG
+glow-ring-amber.png,public/images/shared/,2,PNG
+panel-reflection.png,public/images/shared/,2,PNG
+success-check.json,public/lottie/shared/,2,Lottie JSON
+attention-pulse.json,public/lottie/shared/,2,Lottie JSON
+ambient-node-network.json,public/lottie/shared/,2,Lottie JSON
+footer-gradient-band.webp,public/images/site/,3,WebP
+brand-monogram.svg,public/icons/site/,3,SVG
+cave-fog-overlay.png,public/images/wumpus/,3,PNG
+ancient-runes-panel.webp,public/images/wumpus/,3,WebP
+torch-glow.png,public/images/wumpus/,3,PNG
+grid-overlay-lines.png,public/images/maze/,3,PNG
+board-highlight.png,public/images/puzzle8/,3,PNG
+move-hover-glow.png,public/images/tictactoe/,3,PNG
+sensor-ring.png,public/images/pathfinding/,3,PNG
