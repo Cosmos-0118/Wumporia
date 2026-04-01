@@ -10,7 +10,7 @@ import {
   opponent,
 } from '@/features/tictactoe/engine/board'
 import { computeAIMove } from '@/features/tictactoe/engine/minimax'
-import { applyHumanMove, createGame } from '@/features/tictactoe/engine/game'
+import { applyAutoMove, applyHumanMove, createGame } from '@/features/tictactoe/engine/game'
 import type { TTTBoard } from '@/features/tictactoe/types/tictactoe'
 
 // ---------------------------------------------------------------------------
@@ -143,5 +143,18 @@ describe('TicTacToe Game Engine', () => {
     const next = applyHumanMove(game, 4)
     // Human's move (4) must be first in history
     expect(next.moveHistory[0]).toBe(4)
+  })
+
+  it('can apply auto moves for both players', () => {
+    const game = createGame('X', 'hard')
+    const afterX = applyAutoMove(game)
+    const afterO = applyAutoMove(afterX)
+
+    const filledAfterX = afterX.board.filter((cell) => cell !== null).length
+    const filledAfterO = afterO.board.filter((cell) => cell !== null).length
+
+    expect(filledAfterX).toBe(1)
+    expect(filledAfterO).toBe(2)
+    expect(afterO.currentPlayer).toBe('X')
   })
 })

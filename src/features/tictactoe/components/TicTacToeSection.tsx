@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
-import { applyHumanMove, createGame, resetGame } from '@/features/tictactoe/engine/game'
+import { applyAutoMove, applyHumanMove, createGame } from '@/features/tictactoe/engine/game'
 import type {
   TTTDifficulty,
   TTTGameState,
@@ -14,9 +14,22 @@ import type {
 
 const DIFFICULTIES: TTTDifficulty[] = ['easy', 'medium', 'hard']
 const PLAYER_OPTIONS: TTTPlayer[] = ['X', 'O']
+type TTTMatchMode = 'human-vs-ai' | 'ai-vs-ai'
+type TTTAutoPlaySpeed = 'slow' | 'normal' | 'fast'
+
+const AUTO_PLAY_SPEEDS: TTTAutoPlaySpeed[] = ['slow', 'normal', 'fast']
+const AUTO_PLAY_DELAY_MS: Record<TTTAutoPlaySpeed, number> = {
+  slow: 850,
+  normal: 420,
+  fast: 160,
+}
 
 function difficultyLabel(d: TTTDifficulty): string {
   return d.charAt(0).toUpperCase() + d.slice(1)
+}
+
+function speedLabel(speed: TTTAutoPlaySpeed): string {
+  return speed.charAt(0).toUpperCase() + speed.slice(1)
 }
 
 function scoreColor(score: number): string {
@@ -31,12 +44,13 @@ function scoreColor(score: number): string {
 
 interface TTTBoardDisplayProps {
   game: TTTGameState
+  humanMovesEnabled: boolean
   onCellClick: (index: number) => void
 }
 
-function TTTBoardDisplay({ game, onCellClick }: TTTBoardDisplayProps) {
+function TTTBoardDisplay({ game, humanMovesEnabled, onCellClick }: TTTBoardDisplayProps) {
   const { board, winInfo, status, currentPlayer, humanPlayer } = game
-  const isPlayerTurn = status === 'playing' && currentPlayer === humanPlayer
+  const isPlayerTurn = humanMovesEnabled && status === 'playing' && currentPlayer === humanPlayer
   const winSet = new Set<number>(winInfo?.line ?? [])
 
   return (
@@ -80,13 +94,24 @@ function TTTBoardDisplay({ game, onCellClick }: TTTBoardDisplayProps) {
 // Sub-component: Status banner
 // ---------------------------------------------------------------------------
 
-function StatusBanner({ game }: { game: TTTGameState }) {
+function StatusBanner({ game, mode }: { game: TTTGameState; mode: TTTMatchMode }) {
   const { status, currentPlayer, humanPlayer, winInfo } = game
 
   let message: string
   let cls = 'ttt-status'
 
-  if (status === 'won') {
+  if (mode === 'ai-vs-ai') {
+    if (status === 'draw') {
+      message = "🤝 It's a draw!"
+      cls += ' ttt-status--draw'
+    } else if (status !== 'playing' && winInfo !== null) {
+      message = `🤖 AI (${winInfo.winner}) wins!`
+      cls += ' ttt-status--win'
+    } else {
+      message = `AI (${currentPlayer}) is thinking…`
+      cls += ' ttt-status--thinking'
+    }
+  } else if (status === 'won') {
     message = '🎉 You win!'
     cls += ' ttt-status--win'
   } else if (status === 'lost') {
@@ -110,12 +135,16 @@ function StatusBanner({ game }: { game: TTTGameState }) {
 // Sub-component: AI decision breakdown (Step 33)
 // ---------------------------------------------------------------------------
 
-function AIBreakdownPanel({ game }: { game: TTTGameState }) {
+function AIBreakdownPanel({ game, mode }: { game: TTTGameState; mode: TTTMatchMode }) {
   const { lastAnalysis } = game
   if (lastAnalysis === null) {
     return (
       <div className="ttt-breakdown ttt-breakdown--empty">
-        <p>Play a move to see the AI's decision breakdown.</p>
+        <p>
+          {mode === 'ai-vs-ai'
+            ? 'AI Vs AI is ready. Start or reset the match to watch each AI decision.'
+            : "Play a move to see the AI's decision breakdown."}
+        </p>
       </div>
     )
   }
@@ -163,7 +192,9 @@ function AIBreakdownPanel({ game }: { game: TTTGameState }) {
       </div>
 
       <p className="ttt-breakdown__note">
-        Positive score = AI wins · Negative = human wins · 0 = draw
+        {mode === 'ai-vs-ai'
+          ? 'Positive score = current AI wins · Negative = opposing AI wins · 0 = draw'
+          : 'Positive score = AI wins · Negative = human wins · 0 = draw'}
       </p>
     </div>
   )
@@ -176,30 +207,61 @@ function AIBreakdownPanel({ game }: { game: TTTGameState }) {
 export function TicTacToeSection() {
   const [difficulty, setDifficulty] = useState<TTTDifficulty>('hard')
   const [humanPlayer, setHumanPlayer] = useState<TTTPlayer>('X')
+  const [matchMode, setMatchMode] = useState<TTTMatchMode>('human-vs-ai')
+  const [autoPlaySpeed, setAutoPlaySpeed] = useState<TTTAutoPlaySpeed>('normal')
   const [game, setGame] = useState<TTTGameState>(() => createGame('X', 'hard'))
 
-  const handleCellClick = useCallback(
-    (index: number) => {
-      setGame((prev) => applyHumanMove(prev, index))
+  const buildGameState = useCallback(
+    (nextDifficulty: TTTDifficulty, nextHumanPlayer: TTTPlayer, nextMode: TTTMatchMode) => {
+      const openingHumanPlayer = nextMode === 'ai-vs-ai' ? 'X' : nextHumanPlayer
+      return createGame(openingHumanPlayer, nextDifficulty)
     },
     [],
   )
 
+  const handleCellClick = useCallback(
+    (index: number) => {
+      if (matchMode !== 'human-vs-ai') return
+      setGame((prev) => applyHumanMove(prev, index))
+    },
+    [matchMode],
+  )
+
   const handleReset = useCallback(() => {
-    setGame(resetGame(difficulty, humanPlayer))
-  }, [difficulty, humanPlayer])
+    setGame(buildGameState(difficulty, humanPlayer, matchMode))
+  }, [buildGameState, difficulty, humanPlayer, matchMode])
 
   const handleDifficultyChange = (next: TTTDifficulty) => {
     setDifficulty(next)
-    setGame(resetGame(next, humanPlayer))
+    setGame(buildGameState(next, humanPlayer, matchMode))
   }
 
   const handlePlayerChange = (next: TTTPlayer) => {
     setHumanPlayer(next)
-    setGame(resetGame(difficulty, next))
+    if (matchMode === 'human-vs-ai') {
+      setGame(buildGameState(difficulty, next, matchMode))
+    }
   }
 
+  const handleModeChange = (nextMode: TTTMatchMode) => {
+    setMatchMode(nextMode)
+    setGame(buildGameState(difficulty, humanPlayer, nextMode))
+  }
+
+  useEffect(() => {
+    if (matchMode !== 'ai-vs-ai') return
+    if (game.status !== 'playing') return
+
+    const delay = AUTO_PLAY_DELAY_MS[autoPlaySpeed]
+    const timer = window.setTimeout(() => {
+      setGame((prev) => applyAutoMove(prev))
+    }, delay)
+
+    return () => window.clearTimeout(timer)
+  }, [autoPlaySpeed, game.currentPlayer, game.status, matchMode])
+
   const moveCount = game.moveHistory.length
+  const isHumanVsAi = matchMode === 'human-vs-ai'
 
   return (
     <section className="ttt-lab" id="tictactoe" aria-label="Tic Tac Toe AI lab">
@@ -210,7 +272,8 @@ export function TicTacToeSection() {
           <h2>Tic Tac Toe AI</h2>
           <p>
             Challenge a Minimax AI with optional Alpha-Beta pruning. Choose your difficulty, pick
-            your side, and inspect every branch score the AI evaluates before it moves.
+            your side, watch AI Vs AI, and inspect every branch score the AI evaluates before it
+            moves.
           </p>
         </div>
         <div className="ttt-summary-chips">
@@ -218,7 +281,7 @@ export function TicTacToeSection() {
           <span className={`ttt-chip ttt-chip--diff-${difficulty}`}>
             {difficultyLabel(difficulty)}
           </span>
-          <span className="ttt-chip">Playing as {humanPlayer}</span>
+          <span className="ttt-chip">{isHumanVsAi ? `Playing as ${humanPlayer}` : 'AI Vs AI'}</span>
         </div>
       </div>
 
@@ -242,6 +305,44 @@ export function TicTacToeSection() {
             </div>
           </div>
 
+          {/* Mode selector */}
+          <div className="ttt-control-group">
+            <label className="ttt-control-label">Mode</label>
+            <div className="ttt-btn-group">
+              <button
+                type="button"
+                className={matchMode === 'human-vs-ai' ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'}
+                onClick={() => handleModeChange('human-vs-ai')}
+              >
+                Human Vs AI
+              </button>
+              <button
+                type="button"
+                className={matchMode === 'ai-vs-ai' ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'}
+                onClick={() => handleModeChange('ai-vs-ai')}
+              >
+                AI Vs AI
+              </button>
+            </div>
+          </div>
+
+          <div className="ttt-control-group">
+            <label className="ttt-control-label">Speed</label>
+            <div className="ttt-btn-group">
+              {AUTO_PLAY_SPEEDS.map((speed) => (
+                <button
+                  key={speed}
+                  type="button"
+                  className={autoPlaySpeed === speed ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'}
+                  onClick={() => setAutoPlaySpeed(speed)}
+                  disabled={isHumanVsAi}
+                >
+                  {speedLabel(speed)}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Side selector */}
           <div className="ttt-control-group">
             <label className="ttt-control-label">Play as</label>
@@ -252,6 +353,7 @@ export function TicTacToeSection() {
                   type="button"
                   className={humanPlayer === p ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'}
                   onClick={() => handlePlayerChange(p)}
+                  disabled={!isHumanVsAi}
                 >
                   {p}
                 </button>
@@ -259,9 +361,13 @@ export function TicTacToeSection() {
             </div>
           </div>
 
-          <StatusBanner game={game} />
+          <StatusBanner game={game} mode={matchMode} />
 
-          <TTTBoardDisplay game={game} onCellClick={handleCellClick} />
+          <TTTBoardDisplay
+            game={game}
+            humanMovesEnabled={isHumanVsAi}
+            onCellClick={handleCellClick}
+          />
 
           <button
             type="button"
@@ -274,7 +380,7 @@ export function TicTacToeSection() {
 
         {/* Right column: AI decision breakdown */}
         <div className="ttt-panel-col">
-          <AIBreakdownPanel game={game} />
+          <AIBreakdownPanel game={game} mode={matchMode} />
 
           {/* Move history */}
           {game.moveHistory.length > 0 && (
@@ -283,18 +389,21 @@ export function TicTacToeSection() {
               <div className="ttt-history-list">
                 {game.moveHistory.map((moveIndex, turn) => {
                   const player = turn % 2 === 0 ? 'X' : 'O'
-                  const isHuman = player === game.humanPlayer
+                  const isHumanMove = isHumanVsAi && player === game.humanPlayer
+                  const usesHumanStyle = isHumanVsAi ? isHumanMove : player === 'X'
                   const row = Math.floor(moveIndex / 3) + 1
                   const col = (moveIndex % 3) + 1
                   return (
                     <div
                       key={turn}
-                      className={`ttt-history-item ${isHuman ? 'ttt-history-item--human' : 'ttt-history-item--ai'}`}
+                      className={`ttt-history-item ${usesHumanStyle ? 'ttt-history-item--human' : 'ttt-history-item--ai'}`}
                     >
                       <span className="ttt-history-item__turn">{turn + 1}</span>
                       <span className="ttt-history-item__player">{player}</span>
                       <span className="ttt-history-item__cell">({row},{col})</span>
-                      <span className="ttt-history-item__tag">{isHuman ? 'You' : 'AI'}</span>
+                      <span className="ttt-history-item__tag">
+                        {isHumanVsAi ? (isHumanMove ? 'You' : 'AI') : `AI ${player}`}
+                      </span>
                     </div>
                   )
                 })}

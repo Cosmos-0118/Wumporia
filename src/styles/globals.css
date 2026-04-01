@@ -1495,6 +1495,16 @@ a:hover {
   color: var(--color-brand);
 }
 
+.ttt-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ttt-toggle:disabled:hover {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
 .ttt-toggle--active {
   background: var(--color-brand);
   border-color: var(--color-brand);

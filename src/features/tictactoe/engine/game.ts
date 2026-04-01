@@ -8,8 +8,18 @@ import {
 } from '@/features/tictactoe/engine/board'
 import { computeAIMove } from '@/features/tictactoe/engine/minimax'
 
-function applyAiTurn(state: TTTGameState): TTTGameState {
-  const aiPlayer = opponent(state.humanPlayer)
+function statusForWinner(state: TTTGameState, winner: TTTPlayer): 'won' | 'lost' {
+  return winner === state.humanPlayer ? 'won' : 'lost'
+}
+
+/**
+ * Apply one AI move for the current player.
+ * Useful for both standard human-vs-AI turns and AI-vs-AI autoplay.
+ */
+export function applyAutoMove(state: TTTGameState): TTTGameState {
+  if (state.status !== 'playing') return state
+
+  const aiPlayer = state.currentPlayer
   const analysis = computeAIMove(state.board, aiPlayer, state.difficulty)
 
   if (analysis === null) {
@@ -30,8 +40,8 @@ function applyAiTurn(state: TTTGameState): TTTGameState {
     return {
       ...state,
       board,
-      currentPlayer: state.humanPlayer,
-      status: 'lost',
+      currentPlayer: opponent(aiPlayer),
+      status: statusForWinner(state, aiWin.winner),
       winInfo: aiWin,
       moveHistory: history,
       lastAnalysis: analysis,
@@ -42,7 +52,7 @@ function applyAiTurn(state: TTTGameState): TTTGameState {
     return {
       ...state,
       board,
-      currentPlayer: state.humanPlayer,
+      currentPlayer: opponent(aiPlayer),
       status: 'draw',
       winInfo: null,
       moveHistory: history,
@@ -53,12 +63,19 @@ function applyAiTurn(state: TTTGameState): TTTGameState {
   return {
     ...state,
     board,
-    currentPlayer: state.humanPlayer,
+    currentPlayer: opponent(aiPlayer),
     status: 'playing',
     winInfo: null,
     moveHistory: history,
     lastAnalysis: analysis,
   }
+}
+
+function applyAiTurn(state: TTTGameState): TTTGameState {
+  return applyAutoMove({
+    ...state,
+    currentPlayer: opponent(state.humanPlayer),
+  })
 }
 
 export function createGame(
