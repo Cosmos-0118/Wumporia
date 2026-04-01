@@ -192,7 +192,7 @@
   flex-wrap: wrap;
 }
 
-.wumpusx-cell__tokens span {
+.wumpusx-token {
   min-width: 1.6rem;
   height: 1.6rem;
   border-radius: 999px;
@@ -203,6 +203,31 @@
   color: #fff;
   font-size: 0.74rem;
   font-weight: 700;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1.1rem 1.1rem;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+.wumpusx-token--a {
+  background-color: rgba(11, 114, 133, 0.18);
+  background-image: url('/images/wumpus/agent-explorer-idle.png');
+}
+
+.wumpusx-token--g {
+  background-color: rgba(245, 158, 11, 0.22);
+  background-image: url('/images/wumpus/gold-pile.png.png');
+}
+
+.wumpusx-token--p {
+  background-color: rgba(180, 83, 9, 0.2);
+  background-image: url('/images/wumpus/pit-hole.png.png');
+}
+
+.wumpusx-token--w {
+  background-color: rgba(127, 29, 29, 0.2);
+  background-image: url('/images/wumpus/wumpus-creature-idle.png.png');
 }
 
 .wumpusx__controls {
@@ -339,12 +364,26 @@
   padding: 0.44rem 0.72rem;
   font-size: 0.82rem;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
 }
 
 .wumpusx-chip--active {
   background: #0f766e;
   color: #fff;
   border-color: transparent;
+}
+
+.wumpusx-chip__icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  display: inline-block;
+  object-fit: contain;
+}
+
+.wumpusx-chip--active .wumpusx-chip__icon {
+  filter: brightness(0) invert(1);
 }
 
 .wumpusx__reasoning-list,

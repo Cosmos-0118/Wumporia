@@ -22,6 +22,14 @@ import './WumpusWorldSection.css'
 
 type WumpusFrame = StepFrame<WumpusSolverSnapshot, WumpusSolverMeta>
 type ThoughtTone = 'calm' | 'alert' | 'positive' | 'critical'
+type WumpusCellToken = 'A' | 'G' | 'P' | 'W'
+
+const TOKEN_LABELS: Record<WumpusCellToken, string> = {
+  A: 'Agent',
+  G: 'Gold',
+  P: 'Pit',
+  W: 'Wumpus',
+}
 
 const movementButtons: Array<{
   symbol: string
@@ -357,7 +365,7 @@ export function WumpusWorldSection() {
                 const suspectPit = displayedWorld.knowledge.suspectedPitCells.includes(key)
                 const suspectWumpus = displayedWorld.knowledge.suspectedWumpusCells.includes(key)
                 const revealTruth = displayedWorld.status !== 'exploring' || isVisited
-                const cellLabels: string[] = []
+                const cellLabels: WumpusCellToken[] = []
 
                 if (isCurrent) {
                   cellLabels.push('A')
@@ -389,7 +397,14 @@ export function WumpusWorldSection() {
                     <span className="wumpusx-cell__coord">{row},{col}</span>
                     <div className="wumpusx-cell__tokens">
                       {cellLabels.map((label) => (
-                        <span key={label}>{label}</span>
+                        <span
+                          key={label}
+                          className={`wumpusx-token wumpusx-token--${label.toLowerCase()}`}
+                          aria-label={TOKEN_LABELS[label]}
+                          title={TOKEN_LABELS[label]}
+                        >
+                          {label}
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -490,12 +505,15 @@ export function WumpusWorldSection() {
             <h3>Percepts</h3>
             <div className="wumpusx__percepts">
               <span className={displayedWorld.knowledge.currentPercepts.breeze ? 'wumpusx-chip wumpusx-chip--active' : 'wumpusx-chip'}>
+                  <img src="/icons/games/breeze.svg" alt="" aria-hidden="true" className="wumpusx-chip__icon" />
                 Breeze
               </span>
               <span className={displayedWorld.knowledge.currentPercepts.smell ? 'wumpusx-chip wumpusx-chip--active' : 'wumpusx-chip'}>
+                  <img src="/icons/games/smell.svg" alt="" aria-hidden="true" className="wumpusx-chip__icon" />
                 Smell
               </span>
               <span className={displayedWorld.knowledge.currentPercepts.glitter ? 'wumpusx-chip wumpusx-chip--active' : 'wumpusx-chip'}>
+                  <img src="/icons/games/glitter.svg" alt="" aria-hidden="true" className="wumpusx-chip__icon" />
                 Glitter
               </span>
             </div>
