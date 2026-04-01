@@ -231,7 +231,10 @@ export function PathfindingRobotSection() {
                     {isStart ? 'S' : isGoal ? 'G' : isObstacle ? '■' : isWeighted ? String(weightedCost) : ''}
                   </span>
                   {!isObstacle && !isStart && !isGoal && heuristic !== undefined ? (
-                    <span className="pathfinding-cell__meta">h:{heuristic} g:{cost}</span>
+                    <span className="pathfinding-cell__meta">
+                      <span className="pathfinding-cell__meta-line">h:{heuristic}</span>
+                      <span className="pathfinding-cell__meta-line">g:{cost}</span>
+                    </span>
                   ) : null}
                 </button>
               )
