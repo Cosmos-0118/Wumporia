@@ -44,7 +44,12 @@ interface Puzzle8BoardProps {
   interactive: boolean
 }
 
-function Puzzle8BoardDisplay({ board, lastMovedTile, onTileClick, interactive }: Puzzle8BoardProps) {
+function Puzzle8BoardDisplay({
+  board,
+  lastMovedTile,
+  onTileClick,
+  interactive,
+}: Puzzle8BoardProps) {
   const blankIdx = getBlankIndex(board)
 
   return (
@@ -311,9 +316,7 @@ export function Puzzle8Section() {
           </p>
         </div>
         <div className="puzzle8-summary-chips">
-          {!solvable && (
-            <span className="puzzle8-chip puzzle8-chip--warn">Unsolvable config</span>
-          )}
+          {!solvable && <span className="puzzle8-chip puzzle8-chip--warn">Unsolvable config</span>}
           {solved && <span className="puzzle8-chip puzzle8-chip--ok">Solved!</span>}
           {isSolving && <span className="puzzle8-chip">Solving in worker...</span>}
           {solveResult !== null && solveResult.status === 'failed' && (
@@ -338,7 +341,11 @@ export function Puzzle8Section() {
               <button
                 key={alg}
                 type="button"
-                className={algorithm === alg ? 'puzzle8-algo-btn puzzle8-algo-btn--active' : 'puzzle8-algo-btn'}
+                className={
+                  algorithm === alg
+                    ? 'puzzle8-algo-btn puzzle8-algo-btn--active'
+                    : 'puzzle8-algo-btn'
+                }
                 onClick={() => setAlgorithm(alg)}
               >
                 {alg}
@@ -348,7 +355,11 @@ export function Puzzle8Section() {
 
           {/* Action buttons */}
           <div className="puzzle8-action-bar">
-            <button type="button" className="puzzle8-btn puzzle8-btn--secondary" onClick={handleShuffle}>
+            <button
+              type="button"
+              className="puzzle8-btn puzzle8-btn--secondary"
+              onClick={handleShuffle}
+            >
               Shuffle
             </button>
             <button
@@ -399,10 +410,20 @@ export function Puzzle8Section() {
 
               {/* Playback buttons */}
               <div className="puzzle8-playback">
-                <button type="button" className="puzzle8-ctrl-btn" onClick={handleReset} title="Reset">
+                <button
+                  type="button"
+                  className="puzzle8-ctrl-btn"
+                  onClick={handleReset}
+                  title="Reset"
+                >
                   ⏮
                 </button>
-                <button type="button" className="puzzle8-ctrl-btn" onClick={handleNext} title="Step forward">
+                <button
+                  type="button"
+                  className="puzzle8-ctrl-btn"
+                  onClick={handleNext}
+                  title="Step forward"
+                >
                   ⏭
                 </button>
                 {streamMode === 'playing' ? (
@@ -425,16 +446,12 @@ export function Puzzle8Section() {
               </div>
 
               {/* Step message */}
-              {activeFrame !== null && (
-                <p className="puzzle8-step-msg">{activeFrame.message}</p>
-              )}
+              {activeFrame !== null && <p className="puzzle8-step-msg">{activeFrame.message}</p>}
             </div>
           )}
 
           {/* Metrics */}
-          {solveResult !== null && (
-            <MetricsCard result={solveResult} algorithm={algorithm} />
-          )}
+          {solveResult !== null && <MetricsCard result={solveResult} algorithm={algorithm} />}
 
           {/* Goal state reference */}
           <div className="puzzle8-goal-preview">

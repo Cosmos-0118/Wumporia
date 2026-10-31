@@ -8,36 +8,34 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) {
-            return undefined
-          }
-
-          if (
-            id.includes('/react/') ||
-            id.includes('react-dom') ||
-            id.includes('react-router-dom') ||
-            id.includes('@remix-run/router') ||
-            id.includes('/history/')
-          ) {
-            return 'framework'
-          }
-
-          if (id.includes('framer-motion') || id.includes('gsap')) {
-            return 'motion'
-          }
-
-          if (id.includes('comlink')) {
-            return 'workers'
-          }
-
-          return undefined
+        codeSplitting: {
+          groups: [
+            {
+              name: 'framework',
+              test: /node_modules\/(?:react|react-dom|scheduler)\//,
+              priority: 20,
+            },
+            {
+              name: 'router',
+              test: /node_modules\/(?:react-router(?:-dom)?|@remix-run\/router|history)\//,
+              priority: 15,
+            },
+            {
+              name: 'motion',
+              test: /node_modules\/(?:framer-motion|motion-dom|motion-utils|gsap)\//,
+              priority: 10,
+            },
+            {
+              name: 'workers',
+              test: /node_modules\/comlink\//,
+            },
+          ],
         },
       },
     },

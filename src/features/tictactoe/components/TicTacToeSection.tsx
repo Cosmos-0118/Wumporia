@@ -77,12 +77,8 @@ function TTTBoardDisplay({ game, humanMovesEnabled, onCellClick }: TTTBoardDispl
             disabled={!isClickable}
             aria-label={cell ?? `empty cell ${String(index + 1)}`}
           >
-            {cell !== null && (
-              <span className="ttt-cell__mark">{cell}</span>
-            )}
-            {cell === null && isClickable && (
-              <span className="ttt-cell__ghost">{humanPlayer}</span>
-            )}
+            {cell !== null && <span className="ttt-cell__mark">{cell}</span>}
+            {cell === null && isClickable && <span className="ttt-cell__ghost">{humanPlayer}</span>}
           </button>
         )
       })}
@@ -156,7 +152,8 @@ function AIBreakdownPanel({ game, mode }: { game: TTTGameState; mode: TTTMatchMo
       <div className="ttt-breakdown__header">
         <span className="ttt-breakdown__title">AI Decision Breakdown</span>
         <span className="ttt-breakdown__meta">
-          {nodesEvaluated.toLocaleString()} nodes · {difficultyLabel(difficulty)} · {alphaBetaUsed ? 'α-β pruning' : 'random'}
+          {nodesEvaluated.toLocaleString()} nodes · {difficultyLabel(difficulty)} ·{' '}
+          {alphaBetaUsed ? 'α-β pruning' : 'random'}
         </span>
       </div>
 
@@ -311,14 +308,18 @@ export function TicTacToeSection() {
             <div className="ttt-btn-group">
               <button
                 type="button"
-                className={matchMode === 'human-vs-ai' ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'}
+                className={
+                  matchMode === 'human-vs-ai' ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'
+                }
                 onClick={() => handleModeChange('human-vs-ai')}
               >
                 Human Vs AI
               </button>
               <button
                 type="button"
-                className={matchMode === 'ai-vs-ai' ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'}
+                className={
+                  matchMode === 'ai-vs-ai' ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'
+                }
                 onClick={() => handleModeChange('ai-vs-ai')}
               >
                 AI Vs AI
@@ -333,7 +334,9 @@ export function TicTacToeSection() {
                 <button
                   key={speed}
                   type="button"
-                  className={autoPlaySpeed === speed ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'}
+                  className={
+                    autoPlaySpeed === speed ? 'ttt-toggle ttt-toggle--active' : 'ttt-toggle'
+                  }
                   onClick={() => setAutoPlaySpeed(speed)}
                   disabled={isHumanVsAi}
                 >
@@ -369,11 +372,7 @@ export function TicTacToeSection() {
             onCellClick={handleCellClick}
           />
 
-          <button
-            type="button"
-            className="ttt-reset-btn"
-            onClick={handleReset}
-          >
+          <button type="button" className="ttt-reset-btn" onClick={handleReset}>
             New Game
           </button>
         </div>
@@ -400,7 +399,9 @@ export function TicTacToeSection() {
                     >
                       <span className="ttt-history-item__turn">{turn + 1}</span>
                       <span className="ttt-history-item__player">{player}</span>
-                      <span className="ttt-history-item__cell">({row},{col})</span>
+                      <span className="ttt-history-item__cell">
+                        ({row},{col})
+                      </span>
                       <span className="ttt-history-item__tag">
                         {isHumanVsAi ? (isHumanMove ? 'You' : 'AI') : `AI ${player}`}
                       </span>

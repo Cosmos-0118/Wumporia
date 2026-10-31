@@ -106,7 +106,8 @@ export function PathfindingRobotSection() {
   const openKeys = useMemo(() => new Set(frame?.openKeys ?? []), [frame])
   const closedKeys = useMemo(() => new Set(frame?.closedKeys ?? []), [frame])
   const pathKeys = useMemo(() => new Set(frame?.pathKeys ?? []), [frame])
-  const currentKey = frame?.current === null || frame?.current === undefined ? null : toPathKey(frame.current)
+  const currentKey =
+    frame?.current === null || frame?.current === undefined ? null : toPathKey(frame.current)
 
   const handleGridClick = (row: number, col: number) => {
     setIsPlaying(false)
@@ -163,7 +164,9 @@ export function PathfindingRobotSection() {
           </p>
         </div>
         <div className="pathfinding-summary-chips">
-          <span>{map.rows}x{map.cols} grid</span>
+          <span>
+            {map.rows}x{map.cols} grid
+          </span>
           <span>{map.obstacles.length} obstacles</span>
           <span>{map.weightedTiles.length} weighted tiles</span>
           {isSolving ? <span>Solving in worker...</span> : null}
@@ -178,7 +181,11 @@ export function PathfindingRobotSection() {
                 <button
                   key={editorTool}
                   type="button"
-                  className={tool === editorTool ? 'pathfinding-tool pathfinding-tool--active' : 'pathfinding-tool'}
+                  className={
+                    tool === editorTool
+                      ? 'pathfinding-tool pathfinding-tool--active'
+                      : 'pathfinding-tool'
+                  }
                   onClick={() => setTool(editorTool)}
                 >
                   {editorTool}
@@ -186,12 +193,19 @@ export function PathfindingRobotSection() {
               ))}
             </div>
             <div className="pathfinding-toolbar__group">
-              <button type="button" onClick={handleRandomize}>Random Map</button>
-              <button type="button" onClick={handleReset}>Reset</button>
+              <button type="button" onClick={handleRandomize}>
+                Random Map
+              </button>
+              <button type="button" onClick={handleReset}>
+                Reset
+              </button>
             </div>
           </div>
 
-          <div className="pathfinding-board" style={{ gridTemplateColumns: `repeat(${map.cols}, minmax(0, 1fr))` }}>
+          <div
+            className="pathfinding-board"
+            style={{ gridTemplateColumns: `repeat(${map.cols}, minmax(0, 1fr))` }}
+          >
             {Array.from({ length: map.rows * map.cols }, (_, index) => {
               const row = Math.floor(index / map.cols)
               const col = index % map.cols
@@ -223,12 +237,22 @@ export function PathfindingRobotSection() {
                     isClosed ? 'pathfinding-cell--closed' : '',
                     isPath ? 'pathfinding-cell--path' : '',
                     isCurrent ? 'pathfinding-cell--current' : '',
-                  ].filter(Boolean).join(' ')}
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                   onClick={() => handleGridClick(row, col)}
                   aria-label={`Pathfinding cell ${row}, ${col}`}
                 >
                   <span className="pathfinding-cell__marker">
-                    {isStart ? 'S' : isGoal ? 'G' : isObstacle ? '■' : isWeighted ? String(weightedCost) : ''}
+                    {isStart
+                      ? 'S'
+                      : isGoal
+                        ? 'G'
+                        : isObstacle
+                          ? '■'
+                          : isWeighted
+                            ? String(weightedCost)
+                            : ''}
                   </span>
                   {!isObstacle && !isStart && !isGoal && heuristic !== undefined ? (
                     <span className="pathfinding-cell__meta">
@@ -254,12 +278,17 @@ export function PathfindingRobotSection() {
                 }}
               >
                 {pathfindingAlgorithms.map((item) => (
-                  <option key={item} value={item}>{item}</option>
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
                 ))}
               </select>
             </label>
 
-            <div className="pathfinding-replay-controls" aria-label="Pathfinding AI replay controls">
+            <div
+              className="pathfinding-replay-controls"
+              aria-label="Pathfinding AI replay controls"
+            >
               <button
                 type="button"
                 className="pathfinding-replay-controls__button"
@@ -304,7 +333,7 @@ export function PathfindingRobotSection() {
             <p className="pathfinding-step-message">
               {isSolving
                 ? 'Solving and benchmarking in worker...'
-                : result?.steps[step]?.message ?? result?.failureReason ?? 'No steps available.'}
+                : (result?.steps[step]?.message ?? result?.failureReason ?? 'No steps available.')}
             </p>
           </div>
 
@@ -329,10 +358,18 @@ export function PathfindingRobotSection() {
           <div className="pathfinding-legend-card">
             <h3>Legend</h3>
             <div className="pathfinding-legend-grid">
-              <span><i className="pathfinding-dot pathfinding-dot--open" /> Open list</span>
-              <span><i className="pathfinding-dot pathfinding-dot--closed" /> Closed list</span>
-              <span><i className="pathfinding-dot pathfinding-dot--path" /> Final path</span>
-              <span><i className="pathfinding-dot pathfinding-dot--weighted" /> Weighted tile</span>
+              <span>
+                <i className="pathfinding-dot pathfinding-dot--open" /> Open list
+              </span>
+              <span>
+                <i className="pathfinding-dot pathfinding-dot--closed" /> Closed list
+              </span>
+              <span>
+                <i className="pathfinding-dot pathfinding-dot--path" /> Final path
+              </span>
+              <span>
+                <i className="pathfinding-dot pathfinding-dot--weighted" /> Weighted tile
+              </span>
             </div>
           </div>
         </div>

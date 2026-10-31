@@ -14,7 +14,10 @@ import { toVacuumKey } from '@/features/vacuum/utils/position'
 const VACUUM_AUTOPLAY_MS = 420
 const MIN_GRID_SIZE = 3
 const MAX_GRID_SIZE = 10
-const DEFAULT_GRID_SIZE = Math.min(MAX_GRID_SIZE, Math.max(defaultVacuumBlueprint.rows, defaultVacuumBlueprint.cols))
+const DEFAULT_GRID_SIZE = Math.min(
+  MAX_GRID_SIZE,
+  Math.max(defaultVacuumBlueprint.rows, defaultVacuumBlueprint.cols),
+)
 
 interface VacuumPaneProps {
   title: string
@@ -24,12 +27,24 @@ interface VacuumPaneProps {
   onStepChange: (step: number) => void
 }
 
-function MetricsCard({ metrics, agentType }: { metrics: VacuumMetrics; agentType: VacuumAgentType }) {
+function MetricsCard({
+  metrics,
+  agentType,
+}: {
+  metrics: VacuumMetrics
+  agentType: VacuumAgentType
+}) {
   return (
     <div className="vacuum-metrics-card">
       <div className="vacuum-metrics-card__title-row">
         <h4>{agentType === 'model-based' ? 'Model-Based Agent' : 'Reflex Agent'}</h4>
-        <span className={agentType === 'model-based' ? 'vacuum-chip vacuum-chip--model' : 'vacuum-chip vacuum-chip--reflex'}>
+        <span
+          className={
+            agentType === 'model-based'
+              ? 'vacuum-chip vacuum-chip--model'
+              : 'vacuum-chip vacuum-chip--reflex'
+          }
+        >
           {agentType}
         </span>
       </div>
@@ -68,7 +83,10 @@ function VacuumGrid({ world, snapshot }: { world: VacuumWorld; snapshot: VacuumS
   const agentKey = toVacuumKey(snapshot.agent)
 
   return (
-    <div className="vacuum-grid" style={{ gridTemplateColumns: `repeat(${String(world.cols)}, minmax(0, 1fr))` }}>
+    <div
+      className="vacuum-grid"
+      style={{ gridTemplateColumns: `repeat(${String(world.cols)}, minmax(0, 1fr))` }}
+    >
       {Array.from({ length: world.rows * world.cols }).map((_, idx) => {
         const row = Math.floor(idx / world.cols)
         const col = idx % world.cols
@@ -120,9 +138,15 @@ function VacuumPane({ title, world, result, step, onStepChange }: VacuumPaneProp
       />
 
       <div className="vacuum-pane__legend">
-        <span><i className="vacuum-dot vacuum-dot--agent" /> Agent</span>
-        <span><i className="vacuum-dot vacuum-dot--dirty" /> Dirt</span>
-        <span><i className="vacuum-dot vacuum-dot--clean" /> Clean</span>
+        <span>
+          <i className="vacuum-dot vacuum-dot--agent" /> Agent
+        </span>
+        <span>
+          <i className="vacuum-dot vacuum-dot--dirty" /> Dirt
+        </span>
+        <span>
+          <i className="vacuum-dot vacuum-dot--clean" /> Clean
+        </span>
       </div>
 
       <VacuumGrid world={world} snapshot={frame} />
@@ -193,15 +217,7 @@ export function VacuumWorldSection() {
     return () => {
       window.clearTimeout(timer)
     }
-  }, [
-    isAutoPlaying,
-    modelDone,
-    modelMaxStep,
-    modelStep,
-    reflexDone,
-    reflexMaxStep,
-    reflexStep,
-  ])
+  }, [isAutoPlaying, modelDone, modelMaxStep, modelStep, reflexDone, reflexMaxStep, reflexStep])
 
   const handleStartAi = () => {
     if (reflexDone) {
@@ -275,7 +291,9 @@ export function VacuumWorldSection() {
       </div>
 
       <div className="vacuum-summary-chips">
-        <span>{world.rows}x{world.cols} grid</span>
+        <span>
+          {world.rows}x{world.cols} grid
+        </span>
         <span>{world.dirtKeys.length} dirty tiles</span>
         <label className="vacuum-size-slider" htmlFor="vacuum-grid-size">
           Grid Size: {gridSize}x{gridSize}
@@ -290,7 +308,9 @@ export function VacuumWorldSection() {
             onChange={(event) => handleGridSizeChange(Number(event.target.value))}
           />
         </label>
-        <button type="button" onClick={regenerate}>Regenerate Dirt</button>
+        <button type="button" onClick={regenerate}>
+          Regenerate Dirt
+        </button>
         <div className="vacuum-replay-controls" aria-label="Vacuum AI replay controls">
           <button
             type="button"

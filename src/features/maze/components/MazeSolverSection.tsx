@@ -111,7 +111,7 @@ export function MazeSolverSection() {
   }
 
   const primaryFrame = primaryResult?.steps[primaryStep] ?? null
-  const secondaryFrame = comparisonMode ? secondaryResult?.steps[secondaryStep] ?? null : null
+  const secondaryFrame = comparisonMode ? (secondaryResult?.steps[secondaryStep] ?? null) : null
   const primaryMaxStep = Math.max((primaryResult?.steps.length ?? 1) - 1, 0)
   const secondaryMaxStep = Math.max((secondaryResult?.steps.length ?? 1) - 1, 0)
   const canReplayPrimary = (primaryResult?.steps.length ?? 0) > 1
@@ -200,7 +200,9 @@ export function MazeSolverSection() {
           </p>
         </div>
         <div className="maze-summary-chips">
-          <span>{maze.rows}x{maze.cols} grid</span>
+          <span>
+            {maze.rows}x{maze.cols} grid
+          </span>
           <span>{maze.walls.length} walls</span>
           <span>{comparisonMode ? 'Comparison on' : 'Comparison off'}</span>
           {isSolving ? <span>Solving in worker...</span> : null}
@@ -222,12 +224,19 @@ export function MazeSolverSection() {
             ))}
           </div>
           <div className="maze-toolbar__group">
-            <button type="button" onClick={handleRandomize}>Random Maze</button>
-            <button type="button" onClick={handleReset}>Reset Maze</button>
+            <button type="button" onClick={handleRandomize}>
+              Random Maze
+            </button>
+            <button type="button" onClick={handleReset}>
+              Reset Maze
+            </button>
           </div>
         </div>
 
-        <div className="maze-board" style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}>
+        <div
+          className="maze-board"
+          style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}
+        >
           {Array.from({ length: maze.rows * maze.cols }, (_, index) => {
             const row = Math.floor(index / maze.cols)
             const col = index % maze.cols
@@ -246,7 +255,9 @@ export function MazeSolverSection() {
                   isWall ? 'maze-cell--wall' : '',
                   isStart ? 'maze-cell--start' : '',
                   isGoal ? 'maze-cell--goal' : '',
-                ].filter(Boolean).join(' ')}
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 onClick={() => handleGridClick(row, col)}
                 aria-label={`Maze cell ${row}, ${col}`}
               >
@@ -306,7 +317,10 @@ export function MazeSolverSection() {
         </label>
       </div>
 
-      <div className="maze-stepper__actions maze-stepper__actions--global" aria-label="Maze AI replay controls">
+      <div
+        className="maze-stepper__actions maze-stepper__actions--global"
+        aria-label="Maze AI replay controls"
+      >
         <button
           type="button"
           className="maze-stepper__button"
@@ -382,17 +396,17 @@ function MazeVisualizationPane({
   const frontierKeys = useMemo(() => new Set(frame?.frontierKeys ?? []), [frame])
   const exploredKeys = useMemo(() => new Set(frame?.exploredKeys ?? []), [frame])
   const pathKeys = useMemo(() => new Set(frame?.pathKeys ?? []), [frame])
-  const currentKey = frame?.current === null || frame?.current === undefined ? null : toMazeKey(frame.current)
+  const currentKey =
+    frame?.current === null || frame?.current === undefined ? null : toMazeKey(frame.current)
   const wallKeys = useMemo(() => new Set(maze.walls.map(toMazeKey)), [maze.walls])
   const maxStep = Math.max((result?.steps.length ?? 1) - 1, 0)
   const hasReplaySteps = (result?.steps.length ?? 0) > 1
   const solvedMoveCount = result?.steps.at(-1)?.state.meta.pathCost ?? 0
-  const statusMessage =
-    loading
-      ? 'Solving in worker...'
-      : result?.status === 'completed'
-        ? `Solved in ${solvedMoveCount} moves.`
-        : result?.failureReason ?? 'No path found.'
+  const statusMessage = loading
+    ? 'Solving in worker...'
+    : result?.status === 'completed'
+      ? `Solved in ${solvedMoveCount} moves.`
+      : (result?.failureReason ?? 'No path found.')
 
   return (
     <section className="maze-panel-card">
@@ -408,7 +422,10 @@ function MazeVisualizationPane({
         </div>
       </div>
 
-      <div className="maze-visual-board" style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}>
+      <div
+        className="maze-visual-board"
+        style={{ gridTemplateColumns: `repeat(${maze.cols}, minmax(0, 1fr))` }}
+      >
         {Array.from({ length: maze.rows * maze.cols }, (_, index) => {
           const row = Math.floor(index / maze.cols)
           const col = index % maze.cols
@@ -430,7 +447,9 @@ function MazeVisualizationPane({
                 currentKey === key ? 'maze-visual-cell--current' : '',
                 isStart ? 'maze-visual-cell--start' : '',
                 isGoal ? 'maze-visual-cell--goal' : '',
-              ].filter(Boolean).join(' ')}
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
               <span>{isStart ? 'S' : isGoal ? 'G' : currentKey === key ? '•' : ''}</span>
             </div>
@@ -439,7 +458,8 @@ function MazeVisualizationPane({
       </div>
 
       <label className="maze-stepper">
-        Step {Math.min(step + 1, Math.max(result?.steps.length ?? 1, 1))} / {Math.max(result?.steps.length ?? 1, 1)}
+        Step {Math.min(step + 1, Math.max(result?.steps.length ?? 1, 1))} /{' '}
+        {Math.max(result?.steps.length ?? 1, 1)}
         <input
           type="range"
           min={0}

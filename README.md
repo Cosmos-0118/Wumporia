@@ -1,6 +1,30 @@
-# React + TypeScript + Vite
+# Wumporia
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive AI playground built with React, TypeScript, and Vite.
+
+## Local development
+
+Use Node.js 22.22.1 or newer on the 22.x line, or Node.js 24 or newer.
+The Node.js types target the 24.x runtime used for validation.
+
+```sh
+npm ci
+npm run dev
+```
+
+Before submitting changes, run `npm run typecheck`, `npm run lint`, `npm test`, and
+`npm run build`. The production build also enforces the bundle-size budgets.
+
+TypeScript stays on the latest 6.0 patch because `typescript-eslint` currently
+requires TypeScript below 6.1. Upgrade them together when the parser supports
+TypeScript 7.
+
+The `minimatch` override applies the
+[glob-pattern denial-of-service fix](https://github.com/advisories/GHSA-g3hv-75wg-m249)
+to the lint toolchain. Remove it when ESLint and TypeScript ESLint depend on a
+patched version themselves.
+
+## Template reference
 
 Currently, two official plugins are available:
 

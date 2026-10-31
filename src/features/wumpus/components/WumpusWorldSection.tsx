@@ -59,7 +59,7 @@ function createScenario(size = 6): WumpusWorldState['blueprint'] {
     }
 
     const score =
-      (result.exploredCount * 2) +
+      result.exploredCount * 2 +
       result.solutionPath.length -
       (result.failureReason?.includes('guaranteed safe') === true ? 4 : 0)
 
@@ -91,8 +91,7 @@ function getThoughtTone(message: string | null): ThoughtTone {
 }
 
 function isNearBottom(container: HTMLElement, threshold = 56): boolean {
-  const distanceFromBottom =
-    container.scrollHeight - (container.scrollTop + container.clientHeight)
+  const distanceFromBottom = container.scrollHeight - (container.scrollTop + container.clientHeight)
 
   return distanceFromBottom <= threshold
 }
@@ -106,7 +105,9 @@ export function WumpusWorldSection() {
   const [activeFrame, setActiveFrame] = useState<WumpusFrame | null>(null)
 
   const solverResult = useMemo(() => solveWumpusWorld(createWumpusWorld(scenario)), [scenario])
-  const streamRef = useRef<StepStreamController<WumpusSolverSnapshot, WumpusSolverMeta> | null>(null)
+  const streamRef = useRef<StepStreamController<WumpusSolverSnapshot, WumpusSolverMeta> | null>(
+    null,
+  )
   const reasoningListRef = useRef<HTMLUListElement | null>(null)
   const logListRef = useRef<HTMLOListElement | null>(null)
   const safeKnowledgeRef = useRef<HTMLUListElement | null>(null)
@@ -328,299 +329,373 @@ export function WumpusWorldSection() {
   return (
     <>
       <section className="wumpusx" id="wumpus-world" aria-label="Wumpus World lab">
-      <header className="wumpusx__header">
-        <div className="wumpusx__title-wrap">
-          <p className="eyebrow">Inference Playground</p>
-          <h2>Wumpus World Control Deck</h2>
-          <p>
-            Read percepts, infer danger, and control a slower explainable agent on a larger,
-            freshly generated cave each run.
-          </p>
-        </div>
-        <div className="wumpusx__status-strip">
-          <span className="wumpusx__status-pill">State: {displayedWorld.status.toUpperCase()}</span>
-          <span className="wumpusx__status-pill">Steps: {displayedWorld.agent.stepsTaken}</span>
-          <span className="wumpusx__status-pill">Map: {scenario.size}x{scenario.size}</span>
-          <span className="wumpusx__status-pill">
-            {displayedWorld.agent.hasGold ? 'Gold secured' : 'Gold not secured'}
-          </span>
-        </div>
-      </header>
+        <header className="wumpusx__header">
+          <div className="wumpusx__title-wrap">
+            <p className="eyebrow">Inference Playground</p>
+            <h2>Wumpus World Control Deck</h2>
+            <p>
+              Read percepts, infer danger, and control a slower explainable agent on a larger,
+              freshly generated cave each run.
+            </p>
+          </div>
+          <div className="wumpusx__status-strip">
+            <span className="wumpusx__status-pill">
+              State: {displayedWorld.status.toUpperCase()}
+            </span>
+            <span className="wumpusx__status-pill">Steps: {displayedWorld.agent.stepsTaken}</span>
+            <span className="wumpusx__status-pill">
+              Map: {scenario.size}x{scenario.size}
+            </span>
+            <span className="wumpusx__status-pill">
+              {displayedWorld.agent.hasGold ? 'Gold secured' : 'Gold not secured'}
+            </span>
+          </div>
+        </header>
 
-      <div className="wumpusx__layout">
-        <div className="wumpusx__top-row">
-          <section className="wumpusx__board-card">
-            <div
-              className="wumpusx__board"
-              style={{ gridTemplateColumns: `repeat(${displayedWorld.size}, minmax(0, 1fr))` }}
-            >
-              {Array.from({ length: displayedWorld.size * displayedWorld.size }, (_, index) => {
-                const row = Math.floor(index / displayedWorld.size)
-                const col = index % displayedWorld.size
-                const position = { row, col }
-                const key = toPositionKey(position)
-                const isCurrent = isSamePosition(position, displayedWorld.agent.position)
-                const isVisited = displayedWorld.knowledge.visitedCells.includes(key)
-                const isSafe = displayedWorld.knowledge.safeCells.includes(key)
-                const suspectPit = displayedWorld.knowledge.suspectedPitCells.includes(key)
-                const suspectWumpus = displayedWorld.knowledge.suspectedWumpusCells.includes(key)
-                const revealTruth = displayedWorld.status !== 'exploring' || isVisited
-                const cellLabels: WumpusCellToken[] = []
+        <div className="wumpusx__layout">
+          <div className="wumpusx__top-row">
+            <section className="wumpusx__board-card">
+              <div
+                className="wumpusx__board"
+                style={{ gridTemplateColumns: `repeat(${displayedWorld.size}, minmax(0, 1fr))` }}
+              >
+                {Array.from({ length: displayedWorld.size * displayedWorld.size }, (_, index) => {
+                  const row = Math.floor(index / displayedWorld.size)
+                  const col = index % displayedWorld.size
+                  const position = { row, col }
+                  const key = toPositionKey(position)
+                  const isCurrent = isSamePosition(position, displayedWorld.agent.position)
+                  const isVisited = displayedWorld.knowledge.visitedCells.includes(key)
+                  const isSafe = displayedWorld.knowledge.safeCells.includes(key)
+                  const suspectPit = displayedWorld.knowledge.suspectedPitCells.includes(key)
+                  const suspectWumpus = displayedWorld.knowledge.suspectedWumpusCells.includes(key)
+                  const revealTruth = displayedWorld.status !== 'exploring' || isVisited
+                  const cellLabels: WumpusCellToken[] = []
 
-                if (isCurrent) {
-                  cellLabels.push('A')
-                }
-                if (revealTruth && isSamePosition(position, displayedWorld.blueprint.gold) && !displayedWorld.agent.hasGold) {
-                  cellLabels.push('G')
-                }
-                if (revealTruth && displayedWorld.blueprint.pits.some((pit) => isSamePosition(pit, position))) {
-                  cellLabels.push('P')
-                }
-                if (revealTruth && isSamePosition(position, displayedWorld.blueprint.wumpus)) {
-                  cellLabels.push('W')
-                }
+                  if (isCurrent) {
+                    cellLabels.push('A')
+                  }
+                  if (
+                    revealTruth &&
+                    isSamePosition(position, displayedWorld.blueprint.gold) &&
+                    !displayedWorld.agent.hasGold
+                  ) {
+                    cellLabels.push('G')
+                  }
+                  if (
+                    revealTruth &&
+                    displayedWorld.blueprint.pits.some((pit) => isSamePosition(pit, position))
+                  ) {
+                    cellLabels.push('P')
+                  }
+                  if (revealTruth && isSamePosition(position, displayedWorld.blueprint.wumpus)) {
+                    cellLabels.push('W')
+                  }
 
-                const cellClassName = [
-                  'wumpusx-cell',
-                  boardCellDensityClass,
-                  isCurrent ? 'wumpusx-cell--current' : '',
-                  isVisited ? 'wumpusx-cell--visited' : '',
-                  isSafe ? 'wumpusx-cell--safe' : '',
-                  suspectPit ? 'wumpusx-cell--pit-risk' : '',
-                  suspectWumpus ? 'wumpusx-cell--wumpus-risk' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')
+                  const cellClassName = [
+                    'wumpusx-cell',
+                    boardCellDensityClass,
+                    isCurrent ? 'wumpusx-cell--current' : '',
+                    isVisited ? 'wumpusx-cell--visited' : '',
+                    isSafe ? 'wumpusx-cell--safe' : '',
+                    suspectPit ? 'wumpusx-cell--pit-risk' : '',
+                    suspectWumpus ? 'wumpusx-cell--wumpus-risk' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
 
-                return (
-                  <div className={cellClassName} key={key}>
-                    <span className="wumpusx-cell__coord">{row},{col}</span>
-                    <div className="wumpusx-cell__tokens">
-                      {cellLabels.map((label) => (
-                        <span
-                          key={label}
-                          className={`wumpusx-token wumpusx-token--${label.toLowerCase()}`}
-                          aria-label={TOKEN_LABELS[label]}
-                          title={TOKEN_LABELS[label]}
-                        >
-                          {label}
-                        </span>
-                      ))}
+                  return (
+                    <div className={cellClassName} key={key}>
+                      <span className="wumpusx-cell__coord">
+                        {row},{col}
+                      </span>
+                      <div className="wumpusx-cell__tokens">
+                        {cellLabels.map((label) => (
+                          <span
+                            key={label}
+                            className={`wumpusx-token wumpusx-token--${label.toLowerCase()}`}
+                            aria-label={TOKEN_LABELS[label]}
+                            title={TOKEN_LABELS[label]}
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-
-          <aside className="wumpusx__controls" aria-label="Wumpus controls">
-            <div className="wumpusx__controls-col">
-              <h3>Manual Controls</h3>
-              <div className="wumpusx-dpad" aria-label="Move agent">
-              {movementButtons.map((button) => (
-                <button
-                  className={`wumpusx-btn wumpusx-btn--icon wumpusx-dpad__${button.slot}`}
-                  key={button.direction}
-                  type="button"
-                  onClick={() => handleMove(button.direction)}
-                  aria-label={`Move ${button.direction}`}
-                  disabled={!canManualControl}
-                >
-                  {button.symbol}
-                </button>
-              ))}
+                  )
+                })}
               </div>
-              <div className="wumpusx__action-row">
-                <button type="button" className="wumpusx-btn" onClick={handleGrab} disabled={!canManualControl}>
-                  Grab Gold
-                </button>
-                <button type="button" className="wumpusx-btn wumpusx-btn--ghost" onClick={handleRetryMap}>
-                  Retry Map
+            </section>
+
+            <aside className="wumpusx__controls" aria-label="Wumpus controls">
+              <div className="wumpusx__controls-col">
+                <h3>Manual Controls</h3>
+                <div className="wumpusx-dpad" aria-label="Move agent">
+                  {movementButtons.map((button) => (
+                    <button
+                      className={`wumpusx-btn wumpusx-btn--icon wumpusx-dpad__${button.slot}`}
+                      key={button.direction}
+                      type="button"
+                      onClick={() => handleMove(button.direction)}
+                      aria-label={`Move ${button.direction}`}
+                      disabled={!canManualControl}
+                    >
+                      {button.symbol}
+                    </button>
+                  ))}
+                </div>
+                <div className="wumpusx__action-row">
+                  <button
+                    type="button"
+                    className="wumpusx-btn"
+                    onClick={handleGrab}
+                    disabled={!canManualControl}
+                  >
+                    Grab Gold
+                  </button>
+                  <button
+                    type="button"
+                    className="wumpusx-btn wumpusx-btn--ghost"
+                    onClick={handleRetryMap}
+                  >
+                    Retry Map
+                  </button>
+                </div>
+              </div>
+
+              <div className="wumpusx__controls-col">
+                <h3>AI Playback</h3>
+                <label className="wumpusx-slider" htmlFor="wumpus-speed">
+                  Agent Pace: {speed}x
+                </label>
+                <input
+                  id="wumpus-speed"
+                  className="wumpusx-range"
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={1}
+                  value={speed}
+                  onChange={(event) => setSpeed(Number(event.target.value))}
+                />
+                <div className="wumpusx__action-row">
+                  <button
+                    type="button"
+                    className="wumpusx-btn"
+                    onClick={handleAutoStart}
+                    disabled={running}
+                  >
+                    Start AI
+                  </button>
+                  <button
+                    type="button"
+                    className="wumpusx-btn wumpusx-btn--ghost"
+                    onClick={handleAutoPause}
+                    disabled={!running}
+                  >
+                    Pause
+                  </button>
+                  <button
+                    type="button"
+                    className="wumpusx-btn wumpusx-btn--ghost"
+                    onClick={handleAutoStep}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+
+              <div className="wumpusx__controls-col">
+                <h3>Scenario</h3>
+                <label className="wumpusx-slider" htmlFor="wumpus-size">
+                  Cave Size: {mapSize}x{mapSize}
+                </label>
+                <input
+                  id="wumpus-size"
+                  className="wumpusx-range"
+                  type="range"
+                  min={5}
+                  max={8}
+                  step={1}
+                  value={mapSize}
+                  onChange={(event) => setMapSize(Number(event.target.value))}
+                />
+                <button type="button" className="wumpusx-btn" onClick={handleGenerateMap}>
+                  Generate New Cave
                 </button>
               </div>
-            </div>
-
-            <div className="wumpusx__controls-col">
-              <h3>AI Playback</h3>
-              <label className="wumpusx-slider" htmlFor="wumpus-speed">
-                Agent Pace: {speed}x
-              </label>
-              <input
-                id="wumpus-speed"
-                className="wumpusx-range"
-                type="range"
-                min={1}
-                max={3}
-                step={1}
-                value={speed}
-                onChange={(event) => setSpeed(Number(event.target.value))}
-              />
-              <div className="wumpusx__action-row">
-                <button
-                  type="button"
-                  className="wumpusx-btn"
-                  onClick={handleAutoStart}
-                  disabled={running}
-                >
-                  Start AI
-                </button>
-                <button
-                  type="button"
-                  className="wumpusx-btn wumpusx-btn--ghost"
-                  onClick={handleAutoPause}
-                  disabled={!running}
-                >
-                  Pause
-                </button>
-                <button type="button" className="wumpusx-btn wumpusx-btn--ghost" onClick={handleAutoStep}>
-                  Next
-                </button>
-              </div>
-            </div>
-
-            <div className="wumpusx__controls-col">
-              <h3>Scenario</h3>
-              <label className="wumpusx-slider" htmlFor="wumpus-size">
-                Cave Size: {mapSize}x{mapSize}
-              </label>
-              <input
-                id="wumpus-size"
-                className="wumpusx-range"
-                type="range"
-                min={5}
-                max={8}
-                step={1}
-                value={mapSize}
-                onChange={(event) => setMapSize(Number(event.target.value))}
-              />
-              <button type="button" className="wumpusx-btn" onClick={handleGenerateMap}>
-                Generate New Cave
-              </button>
-            </div>
-          </aside>
-        </div>
-
-        <section className="wumpusx__info-stack">
-          <div className="wumpusx__panel-card">
-            <h3>Percepts</h3>
-            <div className="wumpusx__percepts">
-              <span className={displayedWorld.knowledge.currentPercepts.breeze ? 'wumpusx-chip wumpusx-chip--active' : 'wumpusx-chip'}>
-                  <img src="/icons/games/breeze.svg" alt="" aria-hidden="true" className="wumpusx-chip__icon" />
-                Breeze
-              </span>
-              <span className={displayedWorld.knowledge.currentPercepts.smell ? 'wumpusx-chip wumpusx-chip--active' : 'wumpusx-chip'}>
-                  <img src="/icons/games/smell.svg" alt="" aria-hidden="true" className="wumpusx-chip__icon" />
-                Smell
-              </span>
-              <span className={displayedWorld.knowledge.currentPercepts.glitter ? 'wumpusx-chip wumpusx-chip--active' : 'wumpusx-chip'}>
-                  <img src="/icons/games/glitter.svg" alt="" aria-hidden="true" className="wumpusx-chip__icon" />
-                Glitter
-              </span>
-            </div>
+            </aside>
           </div>
 
-          <div className="wumpusx__panel-card">
-            <h3>Rule Derivation</h3>
-            <ul
-              className="wumpusx__reasoning-list wumpusx__scroll-panel"
-              ref={reasoningListRef}
-              onScroll={handleReasoningScroll}
-            >
-              {activeReasoning.map((reason, index) => (
-                <li
-                  key={`${reason}-${index}`}
+          <section className="wumpusx__info-stack">
+            <div className="wumpusx__panel-card">
+              <h3>Percepts</h3>
+              <div className="wumpusx__percepts">
+                <span
                   className={
-                    index === activeReasoning.length - 1
-                      ? 'wumpusx__reasoning-item wumpusx__reasoning-item--active'
-                      : 'wumpusx__reasoning-item'
+                    displayedWorld.knowledge.currentPercepts.breeze
+                      ? 'wumpusx-chip wumpusx-chip--active'
+                      : 'wumpusx-chip'
                   }
                 >
-                  {reason}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="wumpusx__panel-card">
-            <h3>Knowledge Map</h3>
-            <div className="wumpusx__knowledge-columns">
-              <div className="wumpusx-knowledge-card wumpusx-knowledge-card--safe">
-                <strong>Safe</strong>
-                <ul className="wumpusx__scroll-panel" ref={safeKnowledgeRef} onScroll={handleSafeScroll}>
-                  {safeCells.map((key, index) => (
-                    <li
-                      key={key}
-                      className={
-                        index === safeCells.length - 1
-                          ? 'wumpusx-knowledge-item wumpusx-knowledge-item--active'
-                          : 'wumpusx-knowledge-item'
-                      }
-                    >
-                      {key}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="wumpusx-knowledge-card wumpusx-knowledge-card--pit">
-                <strong>Suspected Pits</strong>
-                <ul className="wumpusx__scroll-panel" ref={pitKnowledgeRef} onScroll={handlePitScroll}>
-                  {pitCells.map((key, index) => (
-                    <li
-                      key={key}
-                      className={
-                        index === pitCells.length - 1
-                          ? 'wumpusx-knowledge-item wumpusx-knowledge-item--active'
-                          : 'wumpusx-knowledge-item'
-                      }
-                    >
-                      {key}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="wumpusx-knowledge-card wumpusx-knowledge-card--wumpus">
-                <strong>Suspected Wumpus</strong>
-                <ul className="wumpusx__scroll-panel" ref={wumpusKnowledgeRef} onScroll={handleWumpusScroll}>
-                  {wumpusCells.map((key, index) => (
-                    <li
-                      key={key}
-                      className={
-                        index === wumpusCells.length - 1
-                          ? 'wumpusx-knowledge-item wumpusx-knowledge-item--active'
-                          : 'wumpusx-knowledge-item'
-                      }
-                    >
-                      {key}
-                    </li>
-                  ))}
-                </ul>
+                  <img
+                    src="/icons/games/breeze.svg"
+                    alt=""
+                    aria-hidden="true"
+                    className="wumpusx-chip__icon"
+                  />
+                  Breeze
+                </span>
+                <span
+                  className={
+                    displayedWorld.knowledge.currentPercepts.smell
+                      ? 'wumpusx-chip wumpusx-chip--active'
+                      : 'wumpusx-chip'
+                  }
+                >
+                  <img
+                    src="/icons/games/smell.svg"
+                    alt=""
+                    aria-hidden="true"
+                    className="wumpusx-chip__icon"
+                  />
+                  Smell
+                </span>
+                <span
+                  className={
+                    displayedWorld.knowledge.currentPercepts.glitter
+                      ? 'wumpusx-chip wumpusx-chip--active'
+                      : 'wumpusx-chip'
+                  }
+                >
+                  <img
+                    src="/icons/games/glitter.svg"
+                    alt=""
+                    aria-hidden="true"
+                    className="wumpusx-chip__icon"
+                  />
+                  Glitter
+                </span>
               </div>
             </div>
-          </div>
-        </section>
-      </div>
 
-      <div className="wumpusx__feed-wrap">
-        <section className="wumpusx__panel-card">
-          <h3>{isAutoViewing ? 'AI Activity Feed' : 'Action Log'}</h3>
-          <ol className="wumpusx__log wumpusx__scroll-panel" ref={logListRef} onScroll={handleLogScroll}>
-            {visibleLogs.map((entry, index) => (
-              <li
-                key={`${entry.turn}-${entry.message}`}
-                className={
-                  index === visibleLogs.length - 1
-                    ? 'wumpusx__log-item wumpusx__log-item--active'
-                    : 'wumpusx__log-item'
-                }
+            <div className="wumpusx__panel-card">
+              <h3>Rule Derivation</h3>
+              <ul
+                className="wumpusx__reasoning-list wumpusx__scroll-panel"
+                ref={reasoningListRef}
+                onScroll={handleReasoningScroll}
               >
-                <strong>T{entry.turn}</strong>
-                <span>{entry.message}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
+                {activeReasoning.map((reason, index) => (
+                  <li
+                    key={`${reason}-${index}`}
+                    className={
+                      index === activeReasoning.length - 1
+                        ? 'wumpusx__reasoning-item wumpusx__reasoning-item--active'
+                        : 'wumpusx__reasoning-item'
+                    }
+                  >
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
+            <div className="wumpusx__panel-card">
+              <h3>Knowledge Map</h3>
+              <div className="wumpusx__knowledge-columns">
+                <div className="wumpusx-knowledge-card wumpusx-knowledge-card--safe">
+                  <strong>Safe</strong>
+                  <ul
+                    className="wumpusx__scroll-panel"
+                    ref={safeKnowledgeRef}
+                    onScroll={handleSafeScroll}
+                  >
+                    {safeCells.map((key, index) => (
+                      <li
+                        key={key}
+                        className={
+                          index === safeCells.length - 1
+                            ? 'wumpusx-knowledge-item wumpusx-knowledge-item--active'
+                            : 'wumpusx-knowledge-item'
+                        }
+                      >
+                        {key}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="wumpusx-knowledge-card wumpusx-knowledge-card--pit">
+                  <strong>Suspected Pits</strong>
+                  <ul
+                    className="wumpusx__scroll-panel"
+                    ref={pitKnowledgeRef}
+                    onScroll={handlePitScroll}
+                  >
+                    {pitCells.map((key, index) => (
+                      <li
+                        key={key}
+                        className={
+                          index === pitCells.length - 1
+                            ? 'wumpusx-knowledge-item wumpusx-knowledge-item--active'
+                            : 'wumpusx-knowledge-item'
+                        }
+                      >
+                        {key}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="wumpusx-knowledge-card wumpusx-knowledge-card--wumpus">
+                  <strong>Suspected Wumpus</strong>
+                  <ul
+                    className="wumpusx__scroll-panel"
+                    ref={wumpusKnowledgeRef}
+                    onScroll={handleWumpusScroll}
+                  >
+                    {wumpusCells.map((key, index) => (
+                      <li
+                        key={key}
+                        className={
+                          index === wumpusCells.length - 1
+                            ? 'wumpusx-knowledge-item wumpusx-knowledge-item--active'
+                            : 'wumpusx-knowledge-item'
+                        }
+                      >
+                        {key}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div className="wumpusx__feed-wrap">
+          <section className="wumpusx__panel-card">
+            <h3>{isAutoViewing ? 'AI Activity Feed' : 'Action Log'}</h3>
+            <ol
+              className="wumpusx__log wumpusx__scroll-panel"
+              ref={logListRef}
+              onScroll={handleLogScroll}
+            >
+              {visibleLogs.map((entry, index) => (
+                <li
+                  key={`${entry.turn}-${entry.message}`}
+                  className={
+                    index === visibleLogs.length - 1
+                      ? 'wumpusx__log-item wumpusx__log-item--active'
+                      : 'wumpusx__log-item'
+                  }
+                >
+                  <strong>T{entry.turn}</strong>
+                  <span>{entry.message}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
       </section>
       {thoughtPopup}
     </>

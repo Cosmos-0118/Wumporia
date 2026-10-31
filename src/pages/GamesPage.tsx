@@ -10,8 +10,8 @@ export function GamesPage() {
         <p className="eyebrow">Game Hub</p>
         <h1>All Mini-Games</h1>
         <p>
-          Each simulation now has a dedicated page with focused layout and interaction space.
-          Choose a game below to enter its full-screen lab.
+          Each simulation now has a dedicated page with focused layout and interaction space. Choose
+          a game below to enter its full-screen lab.
         </p>
       </section>
 

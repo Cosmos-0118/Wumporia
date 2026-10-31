@@ -1,7 +1,7 @@
 :root {
-  --font-heading: "Space Grotesk", "Sora", sans-serif;
-  --font-body: "Manrope", "Plus Jakarta Sans", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-heading: 'Space Grotesk', 'Sora', sans-serif;
+  --font-body: 'Manrope', 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
   --color-surface: #f6f4ee;
   --color-panel: #fffef8;
