@@ -1,91 +1,83 @@
-import { motion } from 'framer-motion'
-import { useMemo, useState } from 'react'
+import { ArrowRight } from 'lucide-react'
+import { motion } from 'motion/react'
+import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 
-import { prefetchRoute } from '@/app/routeModules'
-import { gameCards, gameCategories } from '@/shared/constants/games'
+import { Badge } from '@/components/ui/misc'
+import { games } from '@/lib/games'
 
 export function HomePage() {
-  const [activeCategory, setActiveCategory] = useState<(typeof gameCategories)[number]>('All')
-
-  const visibleGames = useMemo(() => {
-    if (activeCategory === 'All') {
-      return gameCards
-    }
-
-    return gameCards.filter((game) => game.category === activeCategory)
-  }, [activeCategory])
-
   return (
-    <main>
-      <section className="hero-block">
-        <p className="eyebrow">Interactive AI Lab</p>
-        <h1>AI Playground with Visual Solvers and Game Intelligence</h1>
-        <p>
-          Explore classic AI problems through game-like simulations, readable decision traces, and
-          step-by-step algorithm animations.
-        </p>
-        <div className="hero-block__actions">
-          <Link
-            className="button button--primary"
-            to="/games"
-            onMouseEnter={() => prefetchRoute('/games')}
-            onFocus={() => prefetchRoute('/games')}
-          >
-            Open All Games
-          </Link>
-        </div>
-      </section>
-
-      <section className="filter-row" id="game-grid" aria-label="Filter games by category">
-        {gameCategories.map((category) => (
-          <button
-            key={category}
-            type="button"
-            className={
-              category === activeCategory ? 'filter-chip filter-chip--active' : 'filter-chip'
-            }
-            onClick={() => setActiveCategory(category)}
-          >
-            {category}
-          </button>
-        ))}
-      </section>
-
-      <section className="game-grid" aria-live="polite">
-        {visibleGames.map((game, index) => (
-          <motion.article
-            key={game.id}
-            className="game-card"
-            style={{ borderColor: game.accent }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ delay: index * 0.04, duration: 0.32 }}
-          >
-            <p className="game-card__category" style={{ color: game.accent }}>
-              {game.category}
-            </p>
-            <h2>{game.title}</h2>
-            <p>{game.tagline}</p>
-
-            <ul className="game-card__tags" aria-label={`${game.title} algorithms`}>
-              {game.algorithms.map((algorithm) => (
-                <li key={algorithm}>{algorithm}</li>
-              ))}
-            </ul>
-
+    <div className="space-y-16">
+      <section className="relative pt-10 pb-4 text-center sm:pt-16">
+        <div className="grid-bg pointer-events-none absolute inset-x-0 -top-14 h-96 opacity-40" />
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="relative mx-auto max-w-2xl space-y-5"
+        >
+          <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
+            Learn AI by playing with it.
+          </h1>
+          <p className="mx-auto max-w-lg text-lg text-pretty text-muted">
+            Six hands-on playgrounds for search, logic, games, and agents.
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
             <Link
-              to={game.route}
-              className="game-card__cta"
-              onMouseEnter={() => prefetchRoute(game.route)}
-              onFocus={() => prefetchRoute(game.route)}
+              to="/play/wumpus"
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-fg px-5 text-sm font-medium text-bg transition-opacity hover:opacity-85"
             >
-              Open Simulation
+              Start exploring
+              <ArrowRight className="size-4" />
             </Link>
-          </motion.article>
+          </div>
+        </motion.div>
+      </section>
+
+      <section
+        aria-label="Playgrounds"
+        className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4"
+      >
+        {games.map((game, index) => (
+          <div key={game.id} style={{ '--game': game.accent } as CSSProperties}>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.1 + index * 0.05 }}
+            >
+              <Link
+                to={`/play/${game.id}`}
+                className="group block overflow-hidden rounded-xl border bg-surface transition-colors hover:border-border-strong"
+              >
+                <div className="relative h-44 overflow-hidden border-b bg-bg">
+                  <div
+                    className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    style={{
+                      background: `radial-gradient(circle at 50% 120%, color-mix(in oklab, var(--game) 28%, transparent), transparent 70%)`,
+                    }}
+                  />
+                  <div className="absolute inset-0 transition-transform duration-300 ease-out group-hover:scale-[1.04]">
+                    <game.Thumb />
+                  </div>
+                </div>
+                <div className="space-y-2 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h2 className="font-medium">{game.title}</h2>
+                    <ArrowRight className="size-4 -translate-x-1 text-muted opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                  </div>
+                  <p className="text-sm text-pretty text-muted">{game.summary}</p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {game.tags.map((tag) => (
+                      <Badge key={tag}>{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          </div>
         ))}
       </section>
-    </main>
+    </div>
   )
 }

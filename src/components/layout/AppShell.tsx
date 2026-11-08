@@ -1,35 +1,17 @@
-import { Link, Outlet } from 'react-router-dom'
+import * as Tooltip from '@radix-ui/react-tooltip'
+import { Outlet } from 'react-router-dom'
+import { Toaster } from 'sonner'
 
-import { GlobalLoadingOverlay } from '@/components/feedback/GlobalLoadingOverlay'
-import { RouteProgress } from '@/components/feedback/RouteProgress'
-import { PageTransition } from '@/components/motion/PageTransition'
-import { MainNav } from '@/components/navigation/MainNav'
+import { TopBar } from '@/components/layout/TopBar'
 
 export function AppShell() {
   return (
-    <div className="app-shell">
-      <RouteProgress />
-      <GlobalLoadingOverlay />
-
-      <header className="app-shell__header">
-        <div className="app-shell__container app-shell__header-row">
-          <Link className="brand" to="/" aria-label="AI Playground Home">
-            Wumporia
-          </Link>
-          <MainNav />
-        </div>
-      </header>
-
-      <PageTransition>
+    <Tooltip.Provider>
+      <TopBar />
+      <main className="w-full px-4 py-8 sm:px-6 lg:px-10">
         <Outlet />
-      </PageTransition>
-
-      <footer className="app-shell__footer">
-        <div className="app-shell__container app-shell__footer-row">
-          <p>AI Playground for algorithm learning and visual reasoning.</p>
-          <p>Client-side engine • Modern UX • Step-by-step explainability</p>
-        </div>
-      </footer>
-    </div>
+      </main>
+      <Toaster position="bottom-right" theme="system" />
+    </Tooltip.Provider>
   )
 }

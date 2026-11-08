@@ -2,17 +2,15 @@ import { Link } from 'react-router-dom'
 
 export function NotFoundPage() {
   return (
-    <main>
-      <section className="hero-block hero-block--compact">
-        <p className="eyebrow">404</p>
-        <h1>Page Not Found</h1>
-        <p>The page you requested does not exist. Return to the AI Playground home.</p>
-        <div className="hero-block__actions">
-          <Link className="button button--primary" to="/">
-            Back to Home
-          </Link>
-        </div>
-      </section>
-    </main>
+    <div className="flex flex-col items-center gap-4 py-24 text-center">
+      <div className="font-mono text-sm text-muted">404</div>
+      <h1 className="text-2xl font-semibold tracking-tight">Nothing here</h1>
+      <Link
+        to="/"
+        className="inline-flex h-9 items-center rounded-md bg-fg px-4 text-sm font-medium text-bg hover:opacity-85"
+      >
+        Back home
+      </Link>
+    </div>
   )
 }
